@@ -35,7 +35,9 @@ Releases
   Forked by bogpetre
   
   * Fixes:
-    added rescale_proj option to SearchlightHyperalignment
+    - added rescale_proj option to SearchlightHyperalignment
+    - changes for python 3.9 compatability: inspect.getargspec > inspect.getfullargspec (likely breaks backwards compatability with python 2)
+    - support for latest nibabel: giftiio.read and giftiio.write to loadsave.load and loadsave.save
 
 * 2.6.6 (???, ??? ?? 2018)
 
