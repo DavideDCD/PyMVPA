@@ -31,6 +31,12 @@ tracking systems accordingly and can be queried by visiting the URLs::
 Releases
 ========
 
+* 2.6.7 (Tuesday Feb 21, 2023)
+  Forked by bogpetre
+  
+  * Fixes:
+    added rescale_proj option to SearchlightHyperalignment
+
 * 2.6.6 (???, ??? ?? 2018)
 
   A bugfix release
