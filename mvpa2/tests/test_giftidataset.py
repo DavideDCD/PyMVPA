@@ -14,7 +14,7 @@ from mvpa2.testing import SkipTest
 if not externals.exists('nibabel'):
     raise SkipTest
 
-from nibabel.gifti import giftiio as nb_giftiio
+from nibabel import loadsave as nb_loadsave
 from nibabel.gifti import gifti as nb_gifti
 from nibabel.nifti1 import intent_codes, data_type_codes
 
@@ -154,12 +154,12 @@ def test_gifti_dataset(fn, format_, include_nodes):
     assert_datasets_almost_equal(ds, expected_ds)
 
     # test GiftiImage input
-    img = nb_giftiio.read(fn)
+    img = nb_loadsave.load(fn)
     ds2 = gifti_dataset(img)
     assert_datasets_almost_equal(ds2, expected_ds)
 
     # test using Nibabel's output from write
-    nb_giftiio.write(img, fn)
+    nb_loadsave.save(img, fn)
     ds3 = gifti_dataset(fn)
     assert_datasets_almost_equal(ds3, expected_ds)
 

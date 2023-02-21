@@ -12,7 +12,8 @@ GIFTI surface functions (wrapper) using nibabel.gifti
 from mvpa2.base import externals
 
 if externals.exists("nibabel", raise_=True):
-    from nibabel.gifti import gifti, giftiio
+    from nibabel.gifti import gifti
+    from nibabel import loadsave
 
 import numpy as np, os, re
 
@@ -48,7 +49,7 @@ def read(fn):
     Any meta-information stored in the GIFTI file is not present in surf_.
     '''
 
-    g = giftiio.read(fn)
+    g = loadsave.load(fn)
 
     vertices = _get_single_array(g, 'NIFTI_INTENT_POINTSET').data
     faces = _get_single_array(g, 'NIFTI_INTENT_TRIANGLE').data

@@ -30,7 +30,8 @@ from mvpa2.base import externals
 
 externals.exists('nibabel', raise_=True)
 
-from nibabel.gifti import gifti, giftiio
+from nibabel.gifti import gifti
+from nibabel import loadsave
 
 from mvpa2.base.collections import FeatureAttributesCollection, \
     SampleAttributesCollection
@@ -74,7 +75,7 @@ def _gifti_intent_is_node_indices(intent_string):
 
 def _get_gifti_image(samples):
     if isinstance(samples, basestring):
-        samples = giftiio.read(samples)
+        samples = loadsave.save(samples)
 
     required_class = gifti.GiftiImage
     if not isinstance(samples, required_class):
@@ -223,7 +224,7 @@ def map2gifti(ds, filename=None, encoding='GIFTI_ENCODING_B64GZ',
     image = gifti.GiftiImage(darrays=darrays)
 
     if filename is not None:
-        giftiio.write(image, filename)
+        loadsave.save(image, filename)
 
     return image
 

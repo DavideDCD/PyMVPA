@@ -27,8 +27,14 @@ def test_sklearn_data_wrappers():
             continue
         found_fx += 1
         # fx() signatures must be the same
-        assert_equal(inspect.getargspec(getattr(skldata, fx)),
-                     inspect.getargspec(getattr(mvpads, 'skl_%s' % fx[5:])))
+	# Note: the line below was originally inspect.getargspec, which only may have only returned
+	# args, varargs, varkw and defaults, but getfullargspec returns an additional 3 parameters,
+	# kwonlyargs, kwonlydefaults, annotations. Any errors which occur here may arrise from mismatch
+	# of the latter 3, which may not matter. If that's the case rewrite this to evaluate 
+	# getfullargspec on separate lines and only compare the first four parameters
+	# Bogdan (2/21/23)
+        assert_equal(inspect.getfullargspec(getattr(skldata, fx)),
+                     inspect.getfullargspec(getattr(mvpads, 'skl_%s' % fx[5:])))
         if fx in ('load_iris',):
             # add this one if sklearn issue #2865 is resolved
             # 'load_boston'):
