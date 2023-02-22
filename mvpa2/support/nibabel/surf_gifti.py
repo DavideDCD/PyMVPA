@@ -23,7 +23,7 @@ import io
 
 
 def _get_single_array(g, intent):
-        ar = g.getArraysFromIntent(intent)
+        ar = g.get_arrays_from_intent(intent)
         n = len(ar)
         if n != 1:
             len_str = 'no' if n == 0 else '%d' % n
