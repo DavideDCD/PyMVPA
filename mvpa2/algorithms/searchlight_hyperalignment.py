@@ -193,10 +193,10 @@ class FeatureSelectionHyperalignment(ClassWithCollections):
             elif bigger_ds_idxs:
                 for selected_features, isub in zip(features_selected, bigger_ds_idxs):
                     mapper_full = np.zeros((nfeatures_all[isub], nfeatures_all[ref_ds]))
-                    mapper_full[np.ix_(selected_features, range(nfeatures))] = mappers[isub]
+                    mapper_full[np.ix_(selected_features, list(range(nfeatures)))] = mappers[isub]
                     mappers[isub] = mapper_full
         except LinAlgError:
-            print "SVD didn't converge. Try with a new reference, may be."
+            print("SVD didn't converge. Try with a new reference, may be.")
             mappers = [np.eye(nfeatures, dtype='int')] * len(datasets)
         # Extract only the row/column corresponding to the center voxel if full_matrix is False
         if not self.full_matrix:
@@ -651,17 +651,38 @@ class SearchlightHyperalignment(ClassWithCollections):
 
         if params.rescale_proj:
             # rescale proj to transform searchlight sum to yeild searchlight average
+            if __debug__:
+                bar = ProgressBar()
+            n = self.projections[0].shape[0]
+            scaler = np.zeros(n)
+            for idx in range(0, n):
+                if __debug__:
+                    msg = 'Computing node (%i/%i) rescaling' % (idx + 1, n)
+                    debug('SLC', bar(float(idx + 1) / n, msg), cr=True)
+
+                neighborhood = queryengines[0].query_byid(idx)
+                scaler[neighborhood] += 1
+            scaler[np.where(scalar == 0)] = 1 # to avoid division by zero later
+
             for i,proj in enumerate(self.projections):
                 # scaler is a vector that for each feature counts the number of
                 # searchlights that circumscribe it. This corresponds to the number of
                 # projection matrices that were summed in _proc_block(). Rescaling
                 # by this value converts the transform from the sum of projected data 
                 # into the average data produced by each searchlight's projection.
+                
+                '''
+                # this is necessary if query engines don't match across instances
+                # but adds considerably to compute time. There may be a more efficient
+                # way to compute this though someone more clever than me might come up 
+                # with
                 n = proj.shape[0]
                 scaler = np.zeros(n)
                 for idx in range(0, n):
-                    neighborhood = queryengines[0].query_byid(idx)
+                    neighborhood = queryengines[i].query_byid(idx)
                     scaler[neighborhood] += 1
+                scaler[np.where(scalar == 0)] = 1 # to avoid division by zero later
+                '''
                 self.projections[i] = proj*diags(1.0/scaler)
 
         _shpaldebug('Wrapping projection matrices into StaticProjectionMappers')
