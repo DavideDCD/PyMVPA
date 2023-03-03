@@ -664,7 +664,7 @@ class SearchlightHyperalignment(ClassWithCollections):
 
                 neighborhood = queryengines[0].query_byid(idx)
                 scaler[neighborhood] += 1
-            scaler[np.where(scalar == 0)] = 1 # to avoid division by zero later
+            scaler[np.where(scaler == 0)] = 1 # to avoid division by zero later
 
             for i,proj in enumerate(self.projections):
                 # scaler is a vector that for each feature counts the number of
@@ -683,7 +683,7 @@ class SearchlightHyperalignment(ClassWithCollections):
                 for idx in range(0, n):
                     neighborhood = queryengines[i].query_byid(idx)
                     scaler[neighborhood] += 1
-                scaler[np.where(scalar == 0)] = 1 # to avoid division by zero later
+                scaler[np.where(scaler == 0)] = 1 # to avoid division by zero later
                 '''
                 self.projections[i] = proj*diags(1.0/scaler)
 
