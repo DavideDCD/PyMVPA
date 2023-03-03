@@ -37,6 +37,7 @@ __docformat__ = 'restructuredtext'
 
 import numpy as np
 import h5py
+#import h5py.highlevel  # >= 2.8.0, https://github.com/h5py/h5py/issues/1063
 
 import os
 import os.path as osp
@@ -48,6 +49,8 @@ from mvpa2.misc.support import builtins_mod
 
 if __debug__:
     from mvpa2.base import debug
+
+decode = lambda x: x.decode() if 'decode' in dir(x) else x
 
 # don't ask -- makes history re-education a breeze
 universal_classname_remapper = {
@@ -117,13 +120,13 @@ def hdf2obj(hdf, memo=None):
             debug('HDF5', "Load from HDF5 dataset [%s]" % hdf.name)
         if 'is_scalar' in hdf.attrs:
             # extract the scalar from the 0D array
-            obj = hdf[()]
+            obj = decode(hdf[()])
             # and coerce it back into the native Python type if necessary
             if issubclass(type(obj), np.generic):
-                obj = np.asscalar(obj)
+                obj = np.asscalar(obj) if 'asscalar' in dir(np) else obj.item()
         elif 'is_numpy_scalar' in hdf.attrs and 'is_a_view' not in hdf.attrs:
             # extract the scalar from the 0D array as is
-            obj = hdf[()]
+            obj = decode(hdf[()])
         else:
             obj = _hdf_to_ndarray(hdf)
 
@@ -134,9 +137,9 @@ def hdf2obj(hdf, memo=None):
                 "Found hdf group without class instance "
                 "information (group: %s). Cannot convert it into an "
                 "object (content: '%s', attributes: '%s')."
-                % (hdf.name, hdf.keys(), hdf.attrs.keys()))
+                % (hdf.name, list(hdf.keys()), list(hdf.attrs.keys())))
 
-        mod_name = hdf.attrs['module'].decode()
+        mod_name = decode(hdf.attrs['module'])
 
         if __debug__:
             if 'class' in hdf.attrs:
@@ -151,7 +154,7 @@ def hdf2obj(hdf, memo=None):
             obj = _recon_customobj_customrecon(hdf, memo)
         elif mod_name != builtins_mod:
             # Custom objects default reconstructor
-            cls_name = hdf.attrs['class'].decode()
+            cls_name = decode(hdf.attrs['class'])
             if cls_name in ('function', 'type', 'builtin_function_or_method'):
                 # Functions and types
                 obj = _recon_functype(hdf)
@@ -160,7 +163,7 @@ def hdf2obj(hdf, memo=None):
                 obj = _recon_customobj_defaultrecon(hdf, memo)
         else:
             # Built-in objects
-            cls_name = hdf.attrs['class'].decode()
+            cls_name = decode(hdf.attrs['class'])
             if __debug__:
                 debug('HDF5', "Reconstructing built-in object '%s'." % cls_name)
             # built in type (there should be only 'list', 'dict' and 'None'
@@ -205,9 +208,9 @@ def hdf2obj(hdf, memo=None):
 
 def _recon_functype(hdf):
     """Reconstruct a function or type from HDF"""
-    cls_name = hdf.attrs['class'].decode()
-    mod_name = hdf.attrs['module'].decode()
-    ft_name = hdf.attrs['name'].decode()
+    cls_name = decode(hdf.attrs['class'])
+    mod_name = decode(hdf.attrs['module'])
+    ft_name = decode(hdf.attrs['name'])
     if __debug__:
         debug('HDF5', "Load '%s.%s.%s' [%s]"
                       % (mod_name, cls_name, ft_name, hdf.name))
@@ -246,8 +249,8 @@ def _recon_customobj_customrecon(hdf, memo):
     """Reconstruct a custom object from HDF using a custom recontructor"""
     # we found something that has some special idea about how it wants
     # to be reconstructed
-    mod_name = hdf.attrs['module'].decode()
-    recon_name = hdf.attrs['recon'].decode()
+    mod_name = decode(hdf.attrs['module'])
+    recon_name = decode(hdf.attrs['recon'])
     if __debug__:
         debug('HDF5', "Load from custom reconstructor '%s.%s' [%s]"
                       % (mod_name, recon_name, hdf.name))
@@ -325,8 +328,8 @@ def _import_from_thin_air(mod_name, importee, cls_name=None):
 
 def _recon_customobj_defaultrecon(hdf, memo):
     """Reconstruct a custom object from HDF using the default recontructor"""
-    cls_name = hdf.attrs['class'].decode()
-    mod_name = hdf.attrs['module'].decode()
+    cls_name = decode(hdf.attrs['class'])
+    mod_name = decode(hdf.attrs['module'])
     if __debug__:
         debug('HDF5', "Load class instance '%s.%s' instance [%s]"
                       % (mod_name, cls_name, hdf.name))
@@ -391,7 +394,7 @@ def _hdf_dict_to_obj(hdf, memo, skip=None):
             except TypeError:
                 # fucked up dataset -- trying our best
                 if isinstance(k, np.ndarray):
-                    d[np.asscalar(k)] = v
+                    d[np.asscalar(k) if 'asscalar' in dir(np) else k.item()] = v
                 else:
                     # no idea, really
                     raise
@@ -486,7 +489,7 @@ def _hdf_list_to_obj(hdf, memo, target_container=None):
                       objref)
             memo[objref] = target_container
     # for all expected items
-    for i in xrange(length):
+    for i in range(length):
         if __debug__:
             debug('HDF5', "Item %i" % i)
         str_i = str(i)
@@ -549,11 +552,11 @@ def _hdf_to_ndarray(hdf):
         if 'dtype_names' in hdf.attrs:
             assert('dtype' not in hdf.attrs)
             names = [x for x in hdf.attrs['dtype_names']]
-            dtypes = [x.decode() for x in hdf.attrs['dtype_types']]
-            dtype = zip(names, dtypes)
+            dtypes = [decode(x) for x in hdf.attrs['dtype_types']]
+            dtype = list(zip(names, dtypes))
         else:
             assert('dtype' in hdf.attrs)
-            dtype = hdf.attrs['dtype'].decode()
+            dtype = decode(hdf.attrs['dtype'])
         kw = dict() if shape is not None else {}
         obj = np.frombuffer(obj.data, dtype=dtype, **kw)
         obj = obj.reshape(shape, order=['F', 'C'][int(hdf.attrs['c_order'])])
@@ -671,7 +674,7 @@ def obj2hdf(hdf, obj, name=None, memo=None, noid=False, **kwargs):
             # recent (>= 2.0.0) h5py is strict not allowing
             # compression to be set for scalar types or anything with
             # shape==() ... TODO: check about is_objarrays ;-)
-            kwargs = dict([(k, v) for (k, v) in kwargs.iteritems()
+            kwargs = dict([(k, v) for (k, v) in kwargs.items()
                            if k != 'compression'])
 
         is_a_view = False
@@ -861,7 +864,7 @@ def obj2hdf(hdf, obj, name=None, memo=None, noid=False, **kwargs):
             if __debug__:
                 debug('HDF5', "Store dict as zipped list")
             # need to set noid since outer tuple containers are temporary
-            _seqitems_to_hdf(zip(obj.keys(), obj.values()), grp, memo,
+            _seqitems_to_hdf(list(zip(list(obj.keys()), list(obj.values()))), grp, memo,
                              noid=True, **kwargs)
             grp['items'].attrs.create('__keys_in_tuple__', 1)
 
@@ -936,7 +939,7 @@ def h5save(filename, data, name=None, mode='w', mkdir=True, **kwargs):
                 # give it a second and try once more
                 import time
                 time.sleep(1.0)
-                print "'%s' cannot be locked, will try again in a second" % filename
+                print("'%s' cannot be locked, will try again in a second" % filename)
                 retries -= 1
             else:
                 raise
