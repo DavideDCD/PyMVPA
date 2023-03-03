@@ -342,7 +342,9 @@ class SearchlightHyperalignment(ClassWithCollections):
             to true corrects for this, but takes a little time, and is often 
             superfluous (e.g. if followed by a voxel-wise t-test, or if data
             is transformed back into a reference subject's space using a 
-            reverse mapping).""")
+            reverse mapping). In an attempt to reduce the compute time we assume
+            all participants are in the same space, and as a result have the same
+            scaling factors.""")
 
     def __init__(self, **kwargs):
         _shpaldebug("Initializing.")
