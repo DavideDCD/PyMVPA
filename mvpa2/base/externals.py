@@ -358,7 +358,7 @@ def __check_rv_continuous_reduce_func():
 
 def __check_in_ipython():
     # figure out if ran within IPython
-    if '__IPYTHON__' in globals()['__builtins__']:
+    if '__IPYTHON__' in dir(globals()['__builtins__']):
         return
     raise RuntimeError("Not running in IPython session")
 
