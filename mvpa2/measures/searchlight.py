@@ -85,13 +85,21 @@ class BaseSearchlight(Measure):
       """
         Measure.__init__(self, **kwargs)
 
+        
         if nproc is not None and nproc > 1 and not externals.exists('pprocess'):
             raise RuntimeError("The 'pprocess' module is required for "
                                "multiprocess searchlights. Please either "
                                "install python-pprocess, or reduce `nproc` "
                                "to 1 (got nproc=%i) or set to default None"
                                % nproc)
-
+        '''
+        if nproc is not None and nproc > 1 and not externals.exists('joblib'):
+            raise RuntimeError("The 'joblib' module is required for "
+                               "multiprocess searchlights. Please either "
+                               "install joblib, or reduce `nproc` "
+                               "to 1 (got nproc=%i) or set to default None"
+                               % nproc)
+        '''
         self._queryengine = queryengine
         if roi_ids is not None and not isinstance(roi_ids, str) \
                 and not len(roi_ids):
@@ -127,6 +135,7 @@ class BaseSearchlight(Measure):
         # local binding
         nproc = self.nproc
 
+        
         if nproc is None and externals.exists('pprocess'):
             import pprocess
             if on_osx:
@@ -141,6 +150,22 @@ class BaseSearchlight(Measure):
                             "number of cores. Using 1"
                             % externals.versions['pprocess'])
                     nproc = 1
+        '''
+        if nproc is None and externals.exists('joblib'):
+            from joblib import Parallel, delayed, cpu_count
+            if on_osx:
+                warning("Unable to determine automatically maximal number of "
+                        "cores on Mac OS X. Using 1")
+                nproc = 1
+            else:
+                try:
+                    nproc = cpu_count() or 1
+                except AttributeError:
+                    warning("joblib version %s has no API to figure out maximal "
+                            "number of cores. Using 1"
+                            % externals.versions['joblib'])
+                    nproc = 1
+        '''
         # train the queryengine
         self._queryengine.train(dataset)
 
@@ -381,11 +406,16 @@ class Searchlight(BaseSearchlight):
             # the next block sets up the infrastructure for parallel computing
             # this can easily be changed into a ParallelPython loop, if we
             # decide to have a PP job server in PyMVPA
+            
             import pprocess
             p_results = pprocess.Map(limit=nproc_needed)
+            '''
+            from joblib import Parallel, delayed
+            '''
             if __debug__:
                 debug('SLC', "Starting off %s child processes for nblocks=%i"
                       % (nproc_needed, nblocks))
+            
             compute = p_results.manage(
                         pprocess.MakeParallel(proc_block))
             for iblock, block in enumerate(roi_blocks):
@@ -394,6 +424,14 @@ class Searchlight(BaseSearchlight):
                 seed = mvpa2.get_random_seed()
                 compute(block, dataset, copy.copy(self.__datameasure),
                         seed=seed, iblock=iblock)
+            '''
+            with Parallel(n_jobs=nproc_needed, batch_size=1, verbose=0) as parallel:
+                p_results = parallel(
+                    delayed(self._proc_block)(block, dataset, 
+                        copy.copy(self.__datameasure), seed=mvpa2.get_random_seed(), 
+                        iblock=iblock)
+                    for iblock, block in enumerate(roi_blocks))
+            '''
         else:
             # otherwise collect the results in an 1-item list
             p_results = [
