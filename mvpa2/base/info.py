@@ -16,7 +16,7 @@ import os
 from os.path import join as pathjoin
 import platform as pl
 from tempfile import mkstemp
-from StringIO import StringIO
+from io import StringIO
 
 import mvpa2
 from mvpa2.base import externals, cfg
@@ -92,21 +92,19 @@ class WTF(object):
         else:
             # check first
             if not self.__knownitems__.issuperset(include):
-                raise ValueError, \
-                      "Items %s provided in exclude are not known to WTF." \
+                raise ValueError("Items %s provided in exclude are not known to WTF." \
                       " Known are %s" % \
                       (str(set(include).difference(self.__knownitems__)),
-                       self.__knownitems__)
+                       self.__knownitems__))
             report_items = set(include)
 
         if exclude is not None:
             # check if all are known
             if not self.__knownitems__.issuperset(exclude):
-                raise ValueError, \
-                      "Items %s provided in exclude are not known to WTF." \
+                raise ValueError("Items %s provided in exclude are not known to WTF." \
                       " Known are %s" % \
                       (str(set(exclude).difference(self.__knownitems__)),
-                       self.__knownitems__)
+                       self.__knownitems__))
             report_items = report_items.difference(exclude)
         self._report_items = report_items
         self._acquire()
@@ -144,8 +142,8 @@ class WTF(object):
                     #except Exception, e:
                     #    pass
             else:
-                raise RuntimeError, "%s is not under GIT" % gitpath
-        except Exception, e:
+                raise RuntimeError("%s is not under GIT" % gitpath)
+        except Exception as e:
             out.write(' GIT information could not be obtained due "%s"\n' % e)
 
 
@@ -178,14 +176,14 @@ class WTF(object):
         SV = ('.__version__', )              # standard versioning
         out.write(' Versions of critical externals:\n')
         # First the ones known to externals,
-        for k, v in sorted(externals.versions.iteritems()):
+        for k, v in sorted(externals.versions.items()):
             out.write('  %-12s: %s\n' % (k, str(v)))
         try:
             if externals.exists('matplotlib'):
                 import matplotlib
                 out.write(' Matplotlib backend: %s\n'
                           % matplotlib.get_backend())
-        except Exception, exc:
+        except Exception as exc:
             out.write(' Failed to determine backend of matplotlib due to "%s"'
                       % str(exc))
 
@@ -194,7 +192,7 @@ class WTF(object):
         out.write(" PyMVPA Environment Variables:\n")
         pymvpa_envvars = '  '.join([
             '%-20s: "%s"\n' % (str(k), str(v))
-            for k, v in os.environ.iteritems()
+            for k, v in os.environ.items()
             if (k.startswith('MVPA') or k.startswith('PYTHON'))
         ])
         if pymvpa_envvars:
@@ -265,4 +263,4 @@ def wtf(filename=None, **kwargs):
 
 
 if __name__ == '__main__':
-    print wtf()
+    print(wtf())

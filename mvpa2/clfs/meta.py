@@ -405,18 +405,18 @@ class MaximalVote(PredictionsCombiner):
         for clf in clfs:
             # Lets check first if necessary conditional attribute is enabled
             if not clf.ca.is_enabled("predictions"):
-                raise ValueError, "MaximalVote needs classifiers (such as " + \
-                      "%s) with state 'predictions' enabled" % clf
+                raise ValueError("MaximalVote needs classifiers (such as " + \
+                      "%s) with state 'predictions' enabled" % clf)
             predictions = clf.ca.predictions
             if all_label_counts is None:
-                all_label_counts = [ {} for i in xrange(len(predictions)) ]
+                all_label_counts = [ {} for i in range(len(predictions)) ]
 
             # for every sample
-            for i in xrange(len(predictions)):
+            for i in range(len(predictions)):
                 prediction = predictions[i]
                 # XXX fishy location due to literal labels,
                 # TODO simplify assumptions and logic
-                if isinstance(prediction, basestring) or \
+                if isinstance(prediction, str) or \
                        not is_sequence_type(prediction):
                     prediction = (prediction,)
                 for label in prediction: # for every label
@@ -428,13 +428,13 @@ class MaximalVote(PredictionsCombiner):
 
         predictions = []
         # select maximal vote now for each sample
-        for i in xrange(len(all_label_counts)):
+        for i in range(len(all_label_counts)):
             label_counts = all_label_counts[i]
             # lets do explicit search for max so we know
             # if it is unique
             maxk = []                   # labels of elements with max vote
             maxv = -1
-            for k, v in label_counts.iteritems():
+            for k, v in label_counts.items():
                 if v > maxv:
                     maxk = [k]
                     maxv = v
@@ -478,8 +478,8 @@ class MeanPrediction(PredictionsCombiner):
         for clf in clfs:
             # Lets check first if necessary conditional attribute is enabled
             if not clf.ca.is_enabled("predictions"):
-                raise ValueError, "MeanPrediction needs learners (such " \
-                      " as %s) with state 'predictions' enabled" % clf
+                raise ValueError("MeanPrediction needs learners (such " \
+                      " as %s) with state 'predictions' enabled" % clf)
             all_predictions.append(clf.ca.predictions)
 
         # compute mean
@@ -590,7 +590,7 @@ class CombinedClassifier(BoostedClassifier):
         # Decide either we are dealing with regressions
         # by looking at 1st learner
         if self._combiner is None:
-            if isinstance(self.__combiner, basestring) and self.__combiner == 'auto':
+            if isinstance(self.__combiner, str) and self.__combiner == 'auto':
                 self._combiner = (
                     MaximalVote,
                     MeanPrediction)[int(self.clfs[0].__is_regression__)]()
@@ -766,7 +766,7 @@ class TreeClassifier(ProxyClassifier):
         # accordingly
 
         self._groups = groups
-        self._index2group = groups.keys()
+        self._index2group = list(groups.keys())
 
         # All processing of groups needs to be handled within _train
         # since labels_map is not available here and definition
@@ -776,7 +776,7 @@ class TreeClassifier(ProxyClassifier):
         #     no longer the case?
 
         # We can only assign respective classifiers
-        self.clfs = dict([(gk, c) for gk, (ls, c) in groups.iteritems()])
+        self.clfs = dict([(gk, c) for gk, (ls, c) in groups.items()])
         """Dictionary of classifiers used by the groups"""
 
 
@@ -790,7 +790,7 @@ class TreeClassifier(ProxyClassifier):
 
     def __str__(self, *args, **kwargs):
         return super(TreeClassifier, self).__str__(
-            ', '.join(['%s: %s' % i for i in self.clfs.iteritems()]),
+            ', '.join(['%s: %s' % i for i in self.clfs.items()]),
             *args, **kwargs)
 
     def summary(self):
@@ -799,7 +799,7 @@ class TreeClassifier(ProxyClassifier):
         s = super(TreeClassifier, self).summary()
         if self.trained:
             s += "\n Node classifiers summaries:"
-            for i, (clfname, clf) in enumerate(self.clfs.iteritems()):
+            for i, (clfname, clf) in enumerate(self.clfs.items()):
                 s += '\n + %d %s clf: %s' % \
                      (i, clfname, clf.summary().replace('\n', '\n |'))
         return s
@@ -825,9 +825,9 @@ class TreeClassifier(ProxyClassifier):
             ls = groups[gk][0]
             known_already = known.intersection(ls)
             if len(known_already):
-                raise ValueError, "Grouping of labels is not appropriate. " \
+                raise ValueError("Grouping of labels is not appropriate. " \
                       "Got labels %s already among known in %s. " % \
-                       (known_already, known  )
+                       (known_already, known  ))
             groups_labels[gk] = ls      # needed? XXX
             for l in ls :
                 label2index[l] = gi
@@ -839,10 +839,9 @@ class TreeClassifier(ProxyClassifier):
         # Check if none of the labels is missing from known groups
         dsul = set(targets_sa.unique)
         if known.intersection(dsul) != dsul:
-            raise ValueError, \
-                  "Dataset %s had some labels not defined in groups: %s. " \
+            raise ValueError("Dataset %s had some labels not defined in groups: %s. " \
                   "Known are %s" % \
-                  (dataset, dsul.difference(known), known)
+                  (dataset, dsul.difference(known), known))
 
         # We can operate on the same dataset here 
         # Nope: doesn't work nicely with the classifier like kNN
@@ -872,7 +871,7 @@ class TreeClassifier(ProxyClassifier):
         #     signal contain all the other categories data? probably not
         #     since then it would lead to undetermined prediction (which
         #     might be not a bad thing altogether...)
-        for gk in groups.iterkeys():
+        for gk in groups.keys():
             clf = clfs[gk]
             group_labels = groups_labels[gk]
             if clf is None: # Trailing node
@@ -897,7 +896,7 @@ class TreeClassifier(ProxyClassifier):
         """Untrain TreeClassifier
         """
         super(TreeClassifier, self)._untrain()
-        for clf in self.clfs.values():
+        for clf in list(self.clfs.values()):
             if clf is not None:
                 clf.untrain()
 
@@ -1024,7 +1023,7 @@ class BinaryClassifier(ProxyClassifier):
         # data, an just store/restore labels. But it really should be done
         # within Dataset.select_samples
         if len(idlabels) == dataset.nsamples \
-            and [x[0] for x in idlabels] == range(dataset.nsamples):
+            and [x[0] for x in idlabels] == list(range(dataset.nsamples)):
             # the last condition is not even necessary... just overly
             # cautious
             datasetselected = dataset.copy(deep=False)   # no selection is needed
@@ -1137,19 +1136,16 @@ class MulticlassClassifier(CombinedClassifier):
 
         if self.__bclf_type == "1-vs-1":
             # generate pairs and corresponding classifiers
-            # could use _product but let's stay inline with previous
+            # could use _product but let's stay inline with previuos
             # implementation
-            label_pairs = [
-                ([ul1], [ul2])
-                for i, ul1 in enumerate(ulabels)
-                for ul2 in ulabels[i+1:]
-            ]
+            label_pairs = [([ulabels[i]], [ulabels[j]])
+                           for i in range(len(ulabels))
+                           for j in range(i+1, len(ulabels))]
+            if __debug__:
+                debug("CLFMC", "Created %d label pairs for original %d labels",
+                      (len(label_pairs), len(ulabels)))
         elif self.__bclf_type == "1-vs-all":
             raise NotImplementedError
-
-        if __debug__:
-            debug("CLFMC", "Created %d label pairs for original %d labels",
-                  (len(label_pairs), len(ulabels)))
 
         return label_pairs
 
@@ -1158,7 +1154,7 @@ class MulticlassClassifier(CombinedClassifier):
         """
         # construct binary classifiers
         biclfs = []
-        for neglabels, poslabels in self._get_binary_pairs(dataset):
+        for poslabels, neglabels in self._get_binary_pairs(dataset):
             biclfs.append(
                 BinaryClassifier(self.__clf.clone(),
                                  poslabels=poslabels,
@@ -1187,17 +1183,10 @@ class MulticlassClassifier(CombinedClassifier):
 
             # for consistency -- place into object array of tuples
             # (Sensitivity analyzers already do the same)
-            # NOTE from archaeological expedition:
-            #   although we specify poslabels in constructor first, here we
-            #   place neglabels first since that is how we treat pairs e.g.
-            #   in sensitivities -- from neg (or 0) to positive (or 1)
-            pairs = zip(
-                np.array([np.squeeze(clf.neglabels) for clf in self.clfs]).tolist(),
-                np.array([np.squeeze(clf.poslabels) for clf in self.clfs]).tolist()
-            )
+            pairs = list(zip(np.array([np.squeeze(clf.neglabels) for clf in self.clfs]).tolist(),
+                        np.array([np.squeeze(clf.poslabels) for clf in self.clfs]).tolist()))
             ca.raw_predictions_ds = raw_predictions_ds = \
-                Dataset(np.array(raw_predictions).T,
-                        fa={self.space: asobjarray(pairs)})
+                Dataset(np.array(raw_predictions).T, fa={self.space: asobjarray(pairs)})
         if self.combiner is None:
             return raw_predictions_ds
         else:
@@ -1254,9 +1243,8 @@ class SplitClassifier(CombinedClassifier):
         """Store sample instance of basic classifier"""
 
         if isinstance(splitter, type):
-            raise ValueError, \
-                  "Please provide an instance of a splitter, not a type." \
-                  " Got %s" % splitter
+            raise ValueError("Please provide an instance of a splitter, not a type." \
+                  " Got %s" % splitter)
 
         self.__partitioner = partitioner
         self.__splitter = splitter
@@ -1541,12 +1529,11 @@ class RegressionAsClassifier(ProxyClassifier):
         else:
             # verify centroids and assign
             if not set(self.centroids.keys()).issuperset(ul):
-                raise ValueError, \
-                      "Provided centroids with keys %s do not cover all " \
+                raise ValueError("Provided centroids with keys %s do not cover all " \
                       "labels provided during training: %s" \
-                      % (self.centroids.keys(), ul)
+                      % (list(self.centroids.keys()), ul))
             # override with superset
-            ul = self.centroids.keys()
+            ul = list(self.centroids.keys())
             centers = np.array([self.centroids[k] for k in ul])
 
         #self._trained_ul = ul
@@ -1597,6 +1584,5 @@ class RegressionAsClassifier(ProxyClassifier):
 
     def _set_retrainable(self, value, **kwargs):
         if value:
-            raise NotImplementedError, \
-                  "RegressionAsClassifier wrappers are not yet retrainable"
+            raise NotImplementedError("RegressionAsClassifier wrappers are not yet retrainable")
         ProxyClassifier._set_retrainable(self, value, **kwargs)

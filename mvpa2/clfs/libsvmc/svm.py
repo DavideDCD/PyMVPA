@@ -150,8 +150,8 @@ class SVM(_SVM):
         TRANSLATEDICT = {'epsilon': 'eps',
                          'tube_epsilon': 'p'}
         args = []
-        for paramname, param in self.params.items() \
-                + self.kernel_params.items():
+        for paramname, param in list(self.params.items()) \
+                + list(self.kernel_params.items()):
             if paramname in TRANSLATEDICT:
                 argname = TRANSLATEDICT[paramname]
             elif paramname in _svm.SVMParameter.default_parameters:
@@ -193,7 +193,7 @@ class SVM(_SVM):
 
         try:
             self.__model = _svm.SVMModel(svmprob, libsvm_param)
-        except Exception, e:
+        except Exception as e:
             raise FailedToTrainError(str(e))
 
 

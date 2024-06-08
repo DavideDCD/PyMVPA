@@ -31,7 +31,7 @@ if externals.exists("scipy", raise_=True):
     from scipy.linalg import cholesky as SLcholesky
     import scipy.linalg as SL
     # Some local binding for bits of speed up
-    SLAError = SL.basic.LinAlgError
+    SLAError = SL.LinAlgError
 
 if __debug__:
     from mvpa2.base import debug
@@ -60,12 +60,12 @@ def _SLcholesky_autoreg(C, nsteps=None, **kwargs):
     if nsteps is None:
         nsteps = -int(np.floor(np.log10(np.finfo(float).eps)))
     result = None
-    for step in xrange(nsteps):
+    for step in range(nsteps):
         epsilon_value = (10**step) * np.finfo(C.dtype).eps
         epsilon = epsilon_value * np.eye(C.shape[0])
         try:
             result = SLcholesky(C + epsilon, lower=True)
-        except SLAError, e:
+        except SLAError as e:
             warning("Cholesky decomposition lead to failure: %s.  "
                     "As requested, performing auto-regularization but "
                     "for better control you might prefer to regularize "
@@ -303,12 +303,11 @@ class GPR(Classifier):
         elif flavor == 'model_select':
             # sanity check
             if not ('has_sensitivity' in self.__tags__):
-                raise ValueError, \
-                      "model_select flavor is not available probably " \
-                      "due to not available 'openopt' module"
+                raise ValueError("model_select flavor is not available probably " \
+                      "due to not available 'openopt' module")
             return GPRWeights(self, **kwargs)
         else:
-            raise ValueError, "Flavor %s is not recognized" % flavor
+            raise ValueError("Flavor %s is not recognized" % flavor)
 
 
     def _train(self, data):

@@ -73,8 +73,8 @@ class FSLAtlas(XMLBasedAtlas):
                     # try with extension if filename doesn't exist
                     imagefilename += '.nii.gz'
                 ni_image_  = nb.load(imagefilename)
-            except RuntimeError, e:
-                raise RuntimeError, " Cannot open file " + imagefilename
+            except RuntimeError as e:
+                raise RuntimeError(" Cannot open file " + imagefilename)
 
             resolution_ = ni_image_.header.get_zooms()[0]
             if resolution is None:
@@ -98,7 +98,7 @@ class FSLAtlas(XMLBasedAtlas):
             if resolution is not None:
                 msg += " Atlases had resolutions %s" % \
                       (resolutions,)
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
         if __debug__:
             debug('ATL__', "Loading atlas data from %s" % self._image_file)
         self._image = ni_image
@@ -179,9 +179,8 @@ class FSLProbabilisticAtlas(FSLAtlas):
         """
 
         if levels is not None and not (levels in [0, [0], (0,)]):
-            raise ValueError, \
-                  "I guess we don't support levels other than 0 in FSL atlas." \
-                  " Got levels=%s" % (levels,)
+            raise ValueError("I guess we don't support levels other than 0 in FSL atlas." \
+                  " Got levels=%s" % (levels,))
         # check range
         c = self._check_range(c)
 
@@ -206,7 +205,7 @@ class FSLProbabilisticAtlas(FSLAtlas):
         elif self.strategy == 'all':
             pass
         else:
-            raise ValueError, 'Unknown strategy %s' % self.strategy
+            raise ValueError('Unknown strategy %s' % self.strategy)
 
         result = {'voxel_queried' : c,
                   # in the list since we have only single level but
@@ -245,8 +244,7 @@ class FSLProbabilisticAtlas(FSLAtlas):
             elif axes_order == 'zyx':
                 return res.T
             else:
-                raise ValueError, \
-                      "Unknown axes_order=%r provided" % (axes_order,)
+                raise ValueError("Unknown axes_order=%r provided" % (axes_order,))
         else:
             lev = self.levels[0]       # we have just 1 here
             if strategy == 'unique':
@@ -254,7 +252,7 @@ class FSLProbabilisticAtlas(FSLAtlas):
                                     axes_order=axes_order)
             else:
                 maps_dict = self.get_maps(target, axes_order=axes_order)
-                maps = np.array(maps_dict.values())
+                maps = np.array(list(maps_dict.values()))
                 return np.max(maps, axis=0)
 
     def get_maps(self, target, axes_order='xyz', key_attr=None,
@@ -299,7 +297,7 @@ class FSLProbabilisticAtlas(FSLAtlas):
             # now lets go and infiltrate maps:
             # and do silly loop since we will reassign
             # the entries possibly
-            for i in xrange(len(res)):
+            for i in range(len(res)):
                 n, m = res[i]
                 loosers = np.logical_and(overlaps, ~(maximums == i))
                 if len(loosers):
@@ -310,8 +308,7 @@ class FSLProbabilisticAtlas(FSLAtlas):
         elif overlaps is None:
             pass
         else:
-            raise ValueError, \
-                  "Incorrect value of overlaps argument %s" % overlaps
+            raise ValueError("Incorrect value of overlaps argument %s" % overlaps)
         return dict(res)
 
 class FSLLabelsAtlas(XMLBasedAtlas):

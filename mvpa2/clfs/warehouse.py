@@ -96,8 +96,8 @@ class Warehouse(object):
             self._known_tags)
 
         if len(dargs)>0:
-            raise ValueError, "Unknown internals %s requested. Known are %s" % \
-                  (list(dargs), list(self._known_tags))
+            raise ValueError("Unknown internals %s requested. Known are %s" % \
+                  (list(dargs), list(self._known_tags)))
 
         # dummy implementation for now
         result = []
@@ -132,22 +132,22 @@ class Warehouse(object):
                 self.__iadd__(item_)
         else:
             if not hasattr(item, '__tags__'):
-                raise ValueError, "Cannot register %s " % item + \
-                      "which has no __tags__ defined"
+                raise ValueError("Cannot register %s " % item + \
+                      "which has no __tags__ defined")
             if item.descr in self.__descriptions:
                 raise ValueError("Cannot register %s, " % item + \
                       "an item with descriptions '%s' already exists" \
                       % item.descr)
             if len(item.__tags__) == 0:
-                raise ValueError, "Cannot register %s " % item + \
-                      "which has empty __tags__"
+                raise ValueError("Cannot register %s " % item + \
+                      "which has empty __tags__")
             clf_internals = set(item.__tags__)
             if clf_internals.issubset(self._known_tags):
                 self.__items.append(item)
                 self.__keys |= clf_internals
             else:
-                raise ValueError, 'Unknown clf internal(s) %s' % \
-                      clf_internals.difference(self._known_tags)
+                raise ValueError('Unknown clf internal(s) %s' % \
+                      clf_internals.difference(self._known_tags))
             # access by descr
             self.__descriptions[item.descr] = item
         return self
@@ -173,12 +173,12 @@ class Warehouse(object):
         import textwrap
         # sort by description
         for lrn in sorted(self.__getitem__(args), key=lambda x: x.descr.lower()):
-            print '%s\n%s' % (
+            print('%s\n%s' % (
                     lrn.descr,
                     textwrap.fill(', '.join(np.unique(lrn.__tags__)), 70,
                                   initial_indent=' ' * 4,
                                   subsequent_indent=' ' * 4)
-                )
+                ))
 
     @property
     def items(self):
@@ -189,7 +189,7 @@ class Warehouse(object):
     @property
     def descriptions(self):
         """Descriptions of registered items"""
-        return self.__descriptions.keys()
+        return list(self.__descriptions.keys())
 
 
 clfswh = Warehouse(known_tags=_KNOWN_INTERNALS) # classifiers
@@ -218,7 +218,7 @@ clfswh += [ RandomClassifier(descr="Random"),
 
 if externals.exists('libsvm'):
     from mvpa2.clfs.libsvmc import svm as libsvm
-    clfswh._known_tags.update(libsvm.SVM._KNOWN_IMPLEMENTATIONS.keys())
+    clfswh._known_tags.update(list(libsvm.SVM._KNOWN_IMPLEMENTATIONS.keys()))
     clfswh += [libsvm.SVM(descr="libsvm.LinSVM(C=def)", probability=1),
              libsvm.SVM(
                  C=-10.0, descr="libsvm.LinSVM(C=10*def)", probability=1),

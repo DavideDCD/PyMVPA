@@ -50,6 +50,7 @@ from mvpa2.base.dochelpers import enhanced_doc_string, borrowdoc, _repr_attrs, \
 from mvpa2.base import externals
 # XXX local rename is due but later on
 from mvpa2.base.collections import Collection as BaseCollection
+from functools import reduce
 
 if __debug__:
     from mvpa2.base import debug
@@ -103,7 +104,7 @@ class Collection(BaseCollection):
 
     def __reduce__(self):
         #bcr = BaseCollection.__reduce__(self)
-        res = (self.__class__, (self.items(), self.name,))
+        res = (self.__class__, (list(self.items()), self.name,))
         #if __debug__ and 'COL_RED' in debug.active:
         #    debug('COL_RED', 'Returning %s for %s' % (res, self))
         return res
@@ -128,10 +129,10 @@ class Collection(BaseCollection):
         else:
             res = ""
         res += "{"
-        for i in xrange(min(num, maxnumber)):
+        for i in range(min(num, maxnumber)):
             if i > 0:
                 res += " "
-            res += "%s" % str(self.values()[i])
+            res += "%s" % str(list(self.values())[i])
         if len(self) > maxnumber:
             res += "..."
         res += "}"
@@ -149,8 +150,8 @@ class Collection(BaseCollection):
         """
         # XXX For now we do not expect any pure non-specialized
         # collection , thus just override in derived classes
-        raise NotImplementedError, "Class %s should override _cls_repr" \
-              % self.__class__.__name__
+        raise NotImplementedError("Class %s should override _cls_repr" \
+              % self.__class__.__name__)
 
     def _is_initializable(self, key):
         """Checks if key could be assigned within collection via
@@ -174,7 +175,7 @@ class Collection(BaseCollection):
         #      % self.__class__.__name__
 
         # YYY lets just check if it is in the keys
-        return key in self.keys()
+        return key in list(self.keys())
 
 
     def _initialize(self, key, value):
@@ -190,7 +191,7 @@ class Collection(BaseCollection):
         # into the repr() of the ClassWithCollections instance
         return "%s(items=%s, name=%s)" \
                   % (self.__class__.__name__,
-                     repr(self.values()),
+                     repr(list(self.values())),
                      repr(self.name))
 
         # MIH: explicitly comment out the rest, as it is unreachable and
@@ -221,7 +222,7 @@ class Collection(BaseCollection):
           What items to check if they were set in the collection
         """
         if key is not None:
-            if isinstance(key, basestring):
+            if isinstance(key, str):
                 return self[key].is_set
             else:
                 items = key           # assume that we got some list
@@ -238,7 +239,7 @@ class Collection(BaseCollection):
         """Return list of keys which were set"""
         result = []
         # go through all members and if any is_set -- return True
-        for key, v in self.iteritems():
+        for key, v in self.items():
             if v.is_set:
                 result.append(key)
         return result
@@ -256,7 +257,7 @@ class Collection(BaseCollection):
         missingok : bool
           If True - do not complain about wrong key
         """
-        if isinstance(key, basestring):
+        if isinstance(key, str):
             if key.lower() == 'all':
                 for key_ in self:
                     self._action(key_, func, missingok=missingok, **kwargs)
@@ -271,8 +272,7 @@ class Collection(BaseCollection):
             for item in key:
                 self._action(item, func, missingok=missingok, **kwargs)
         else:
-            raise ValueError, \
-                  "Don't know how to handle  variable given by %s" % key
+            raise ValueError("Don't know how to handle  variable given by %s" % key)
 
 
     def reset(self, key=None):
@@ -281,12 +281,12 @@ class Collection(BaseCollection):
         if key is not None:
             keys = [ key ]
         else:
-            keys = self.keys()
+            keys = list(self.keys())
 
         if len(self):
             for key in keys:
                 # XXX Check if that works as desired
-                self._action(key, self.values()[0].__class__.reset,
+                self._action(key, list(self.values())[0].__class__.reset,
                              missingok=False)
 
     # XXX RF: not used anywhere / myself -- hence not worth it?
@@ -295,7 +295,7 @@ class Collection(BaseCollection):
         """Return a list of registered ca along with the documentation"""
 
         # lets assure consistent litsting order
-        items_ = self.items()
+        items_ = list(self.items())
         items_.sort()
         return [ "%s%s%s: %s" % (_def_sep, str(x[1]), _def_sep, x[1].__doc__)
                  for x in items_ ]
@@ -321,7 +321,7 @@ class ParameterCollection(Collection):
         """Part of __repr__ for the owner object
         """
         prefixes = []
-        for k in self.keys():
+        for k in list(self.keys()):
             # list only params with not default values
             if self[k].is_default:
                 continue
@@ -398,9 +398,9 @@ class ConditionalAttributesCollection(Collection):
         elif key == 'disable_ca':
             self.disable(value)
         else:
-            raise ValueError, "ConditionalAttributesCollection can accept only enable_ca " \
+            raise ValueError("ConditionalAttributesCollection can accept only enable_ca " \
                   "and disable_ca arguments for the initialization. " \
-                  "Got %s" % key
+                  "Got %s" % key)
 
     # XXX RF: used only in meta -- those should become a bit tighter coupled
     #         and .copy / .update should only be used
@@ -499,7 +499,7 @@ class ConditionalAttributesCollection(Collection):
             # lets take ca which are enabled in other but not in
             # self
             add_enable_ca = list(set(other.enabled).difference(
-                 set(enable_ca)).intersection(self.keys()))
+                 set(enable_ca)).intersection(list(self.keys())))
             if len(add_enable_ca)>0:
                 if __debug__:
                     debug("ST",
@@ -549,7 +549,7 @@ class ConditionalAttributesCollection(Collection):
         else:
             ffunc = lambda y: fmatch(y) and \
                         self[y]._defaultenabled != self.is_enabled(y)
-        return [n for n in self.keys() if ffunc(n)]
+        return [n for n in list(self.keys()) if ffunc(n)]
 
 
     def _set_enabled(self, keys):
@@ -567,7 +567,7 @@ class ConditionalAttributesCollection(Collection):
         >>> blah.ca.enabled = ['bleh']
         >>> blah.ca.enabled = ca_enabled
         """
-        for key in self.keys():
+        for key in list(self.keys()):
             self.enable(key, key in keys)
 
 
@@ -598,7 +598,7 @@ _known_collections = {
     }
 
 
-_col2class = dict(_known_collections.values())
+_col2class = dict(list(_known_collections.values()))
 """Mapping from collection name into Collection class"""
 
 
@@ -634,7 +634,7 @@ class AttributesCollector(type):
         super(AttributesCollector, cls).__init__(name, bases, dict)
 
         collections = {}
-        for name, value in dict.iteritems():
+        for name, value in dict.items():
             if isinstance(value, IndexedCollectable):
                 baseclassname = value.__class__.__name__
                 col = _known_collections[baseclassname][0]
@@ -666,14 +666,14 @@ class AttributesCollector(type):
                     debug("COLR",
                           "Collect collections %s for %s from %s",
                           (newcollections, cls, base))
-                for col, super_collection in newcollections.iteritems():
+                for col, super_collection in newcollections.items():
                     if col in collections:
                         if __debug__:
                             debug("COLR", "Updating existing collection %s with the one from super class" % col)
                         collection = collections[col]
                         # Current class could have overriden a parameter, so
                         # we need to keep it without updating
-                        for pname, pval in super_collection.iteritems():
+                        for pname, pval in super_collection.items():
                             if pname not in collection:
                                 collection[pname] = pval
                             elif __debug__:
@@ -686,15 +686,14 @@ class AttributesCollector(type):
         if __debug__:
             debug("COLR",
                   "Creating ConditionalAttributesCollection template %s "
-                  "with collections %s", (cls, collections.keys()))
+                  "with collections %s", (cls, list(collections.keys())))
 
         # if there is an explicit
         if hasattr(cls, "_ATTRIBUTE_COLLECTIONS"):
             for col in cls._ATTRIBUTE_COLLECTIONS:
                 if not col in _col2class:
-                    raise ValueError, \
-                          "Requested collection %s is unknown to collector" % \
-                          col
+                    raise ValueError("Requested collection %s is unknown to collector" % \
+                          col)
                 if not col in collections:
                     collections[col] = None
 
@@ -703,14 +702,14 @@ class AttributesCollector(type):
         # collections.
         # XXX should we switch to tuple?
 
-        for col, colitems in collections.iteritems():
+        for col, colitems in collections.items():
             # so far we collected the collection items in a dict, but the new
             # API requires to pass a _list_ of collectables instead of a dict.
             # So, whenever there are items, we pass just the values of the dict.
             # There is no information last, since the keys of the dict are the
             # name attributes of each collectable in the list.
             if colitems is not None:
-                collections[col] = _col2class[col](items=colitems.values())
+                collections[col] = _col2class[col](items=list(colitems.values()))
             else:
                 collections[col] = _col2class[col]()
 
@@ -734,7 +733,7 @@ class AttributesCollector(type):
                 # lets at least sort the parameters for consistent output
                 col_items = collections[col]
                 iparams = [(v._instance_index, k)
-                           for k,v in col_items.iteritems()]
+                           for k,v in col_items.items()]
                 iparams.sort()
                 paramsdoc += [(col_items[iparam[1]].name,
                                col_items[iparam[1]]._paramdoc())
@@ -774,7 +773,7 @@ class AttributesCollector(type):
 
 
 
-class ClassWithCollections(object):
+class ClassWithCollections(object, metaclass=AttributesCollector):
     """Base class for objects which contain any known collection
 
     Classes inherited from this class gain ability to access
@@ -787,8 +786,6 @@ class ClassWithCollections(object):
     TODO: rename 'descr'? -- it should simply
           be 'doc' -- no need to drag classes docstring imho.
     """
-
-    __metaclass__ = AttributesCollector
 
     def __new__(cls, *args, **kwargs):
         """Instantiate ClassWithCollections object
@@ -817,11 +814,10 @@ class ClassWithCollections(object):
             """
 
             # Assign owner to all collections
-            for col, collection in collections.iteritems():
+            for col, collection in collections.items():
                 if col in s__dict__:
-                    raise ValueError, \
-                          "Object %s has already attribute %s" % \
-                          (self, col)
+                    raise ValueError("Object %s has already attribute %s" % \
+                          (self, col))
                 s__dict__[col] = collection
                 collection.name = col
 
@@ -851,7 +847,7 @@ class ClassWithCollections(object):
                 return 'ZZZZZZ'
             return k
 
-        return sorted(kwargs.items(), key=_key)
+        return sorted(list(kwargs.items()), key=_key)
 
     def __init__(self, descr=None, **kwargs):
         """Initialize ClassWithCollections object
@@ -875,7 +871,7 @@ class ClassWithCollections(object):
 
             for arg, argument in self._custom_kwargs_sort_items(**kwargs):
                 isset = False
-                for collection in collections.itervalues():
+                for collection in collections.values():
                     if collection._is_initializable(arg):
                         collection._initialize(arg, argument)
                         isset = True
@@ -885,8 +881,8 @@ class ClassWithCollections(object):
                 else:
                     known_params = reduce(
                        lambda x,y:x+y,
-                        [x.keys()
-                         for x in collections.itervalues()
+                        [list(x.keys())
+                         for x in collections.values()
                          if not isinstance(x, ConditionalAttributesCollection)
                          ], [])
                     _, kwargs_list, _ = get_docstring_split(self.__init__)
@@ -948,7 +944,7 @@ class ClassWithCollections(object):
             # return all private ones first since smth like __dict__ might be
             # queried by copy before instance is __init__ed
             if key == '':
-                raise AttributeError, "Silly to request attribute ''"
+                raise AttributeError("Silly to request attribute ''")
 
             if key[0] == '_':
                 return _object_getattribute(self, key)
@@ -975,7 +971,7 @@ class ClassWithCollections(object):
 
         def __setattr__(self, key, value):
             if key == '':
-                raise AttributeError, "Silly to set attribute ''"
+                raise AttributeError("Silly to set attribute ''")
 
             if key[0] == '_':
                 return _object_setattr(self, key, value)
@@ -1000,7 +996,7 @@ class ClassWithCollections(object):
 
     # XXX not sure if we shouldn't implement anything else...
     def reset(self):
-        for collection in self._collections.values():
+        for collection in list(self._collections.values()):
             collection.reset()
 
 
@@ -1009,7 +1005,7 @@ class ClassWithCollections(object):
         if self.__descr is not None:
             s += "/%s " % self.__descr
         if hasattr(self, "_collections"):
-            for col, collection in self._collections.iteritems():
+            for col, collection in self._collections.items():
                 s += " %d %s:%s" % (len(collection), col, str(collection))
         return s
 

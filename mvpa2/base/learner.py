@@ -282,8 +282,8 @@ class CompoundLearner(Learner, CompoundNode):
 
     is_trained = property(fget=lambda x: all(y.is_trained
                                              for y in x),
-                          fset=lambda x: map(y._set_trained()
-                                             for y in x),
+                          fset=lambda x: list(map(y._set_trained()
+                                             for y in x)),
                           doc="Whether the Learner is currently trained.")
 
     def train(self, ds):

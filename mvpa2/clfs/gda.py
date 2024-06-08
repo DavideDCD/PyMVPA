@@ -92,9 +92,8 @@ class GDA(Classifier):
         elif prior == 'ratio':
             priors = np.squeeze(nsamples_per_class) / float(nsamples)
         else:
-            raise ValueError, \
-                  "No idea on how to handle '%s' way to compute priors" \
-                  % self.params.prior
+            raise ValueError("No idea on how to handle '%s' way to compute priors" \
+                  % self.params.prior)
         return np.atleast_1d(priors)
 
 
@@ -128,7 +127,7 @@ class GDA(Classifier):
 
         # Estimate cov
         # better loop than repmat! ;)
-        for l, il in label2index.iteritems():
+        for l, il in label2index.items():
             Xl = X[labels == l]
             nsamples_per_class[il] = len(Xl)
             # TODO: degenerate case... no samples for known label for
@@ -179,15 +178,14 @@ class GDA(Classifier):
     def _inv(self, cov):
         try:
             return np.linalg.inv(cov)
-        except Exception, e:
+        except Exception as e:
             if self.params.allow_pinv:
                 try:
                     return np.linalg.pinv(cov)
-                except Exception, e:
+                except Exception as e:
                     pass
-            raise DegenerateInputError, \
-              "Data is probably singular, since inverse fails. Got %s"\
-              % (e,)
+            raise DegenerateInputError("Data is probably singular, since inverse fails. Got %s"\
+              % (e,))
 
 
 class LDA(GDA):
@@ -217,7 +215,7 @@ class LDA(GDA):
         # Precompute and store the actual separating hyperplane and offset
         self._w = np.dot(covi, self.means.T)
         self._b = b = np.zeros((nlabels,))
-        for il in xrange(nlabels):
+        for il in range(nlabels):
             m = self.means[il]
             b[il] = np.log(self.priors[il]) - 0.5 * np.dot(np.dot(m.T, covi), m)
 

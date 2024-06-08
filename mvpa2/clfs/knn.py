@@ -140,13 +140,13 @@ class kNN(Classifier):
             weights = \
                 [ 1.0 - ((labels == label).sum() / Nlabels) \
                     for label in uniquelabels ]
-            self.__weights = dict(zip(uniquelabels, weights))
+            self.__weights = dict(list(zip(uniquelabels, weights)))
         else:
             self.__weights = None
 
         # create dictionary with an item for each condition
-        self.__votes_init = dict(zip(uniquelabels,
-                                     [0] * Nuniquelabels))
+        self.__votes_init = dict(list(zip(uniquelabels,
+                                     [0] * Nuniquelabels)))
 
 
     @accepts_dataset_as_samples
@@ -166,11 +166,11 @@ class kNN(Classifier):
         # checks only in debug mode
         if __debug__:
             if not data.ndim == 2:
-                raise ValueError, "Data array must be two-dimensional."
+                raise ValueError("Data array must be two-dimensional.")
 
             if not data.shape[1] == self.__data.nfeatures:
-                raise ValueError, "Length of data samples (features) does " \
-                                  "not match the classifier."
+                raise ValueError("Length of data samples (features) does " \
+                                  "not match the classifier.")
 
         # compute the distance matrix between training and test data with
         # distances stored row-wise, i.e. distances between test sample [0]
@@ -199,8 +199,8 @@ class kNN(Classifier):
                 for ul in uniquelabels:
                     votes[ul] *= self.__weights[ul]
             else:
-                raise ValueError, "kNN told to perform unknown voting '%s'." \
-                      % self.__voting
+                raise ValueError("kNN told to perform unknown voting '%s'." \
+                      % self.__voting)
 
             # reverse dictionary items and sort them to get the
             # winners
@@ -208,7 +208,7 @@ class kNN(Classifier):
             # the maximum, but this piece should be the least
             # cpu-intensive while distances computation should consume
             # the most. Also it would allow to look and break the ties
-            votes_reversed = sorted([(v, k) for k, v in votes.iteritems()],
+            votes_reversed = sorted([(v, k) for k, v in votes.items()],
                                     reverse=True)
             # check for ties
             max_vote, max_vote_label = votes_reversed[0]

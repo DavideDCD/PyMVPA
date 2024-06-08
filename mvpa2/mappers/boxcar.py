@@ -62,9 +62,9 @@ class BoxcarMapper(Mapper):
 
         # Sanity checks
         if boxlength < 1:
-            raise ValueError, "Boxlength lower than 1 makes no sense."
+            raise ValueError("Boxlength lower than 1 makes no sense.")
         if boxlength - int(boxlength) != 0:
-            raise ValueError, "boxlength must be an integer value."
+            raise ValueError("boxlength must be an integer value.")
 
         self.boxlength = int(boxlength)
         self.offset = offset

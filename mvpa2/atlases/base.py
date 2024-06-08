@@ -197,7 +197,7 @@ class XMLBasedAtlas(BaseAtlas):
     @property
     def version(self):
         if self.__atlas is not None \
-               and ("version" in self.__atlas.attrib.keys()):
+               and ("version" in list(self.__atlas.attrib.keys())):
             return self.__atlas.get("version")
         else:
             return None
@@ -268,7 +268,7 @@ class XMLBasedAtlas(BaseAtlas):
 
 
     def levels_listing(self):
-        lkeys = range(self.nlevels)
+        lkeys = list(range(self.nlevels))
         return '\n'.join(['%d: ' % k + str(self._levels[k])
                           for k in lkeys])
 
@@ -279,7 +279,7 @@ class XMLBasedAtlas(BaseAtlas):
         Depends on given `levels` as well as self.default_levels
         """
         if levels is None:
-            levels = [ i for i in xrange(self.nlevels) ]
+            levels = [ i for i in range(self.nlevels) ]
         elif (isinstance(levels, slice)):
             # levels are given as a range
             if levels.step: step = levels.step
@@ -291,7 +291,7 @@ class XMLBasedAtlas(BaseAtlas):
             if levels.stop: stop = levels.stop
             else: stop = self.nlevels
 
-            levels = [ i for i in xrange(start, stop, step) ]
+            levels = [ i for i in range(start, stop, step) ]
 
         elif isinstance(levels, (list, tuple)):
             # levels given as list
@@ -301,16 +301,15 @@ class XMLBasedAtlas(BaseAtlas):
             levels = [ levels ]
 
         else:
-            raise TypeError('Given levels "%s" are of unsupported type' % `levels`)
+            raise TypeError('Given levels "%s" are of unsupported type' % repr(levels))
 
         selected_levels = levels
         # test given values
         levels = self.levels
         for level in selected_levels:
             if not level in levels:
-                raise ValueError, \
-                      "Level %r is not known (out of range?). Known levels are:\n%s" \
-                      % (level, self.levels_listing())
+                raise ValueError("Level %r is not known (out of range?). Known levels are:\n%s" \
+                      % (level, self.levels_listing()))
 
         return selected_levels
 
@@ -359,7 +358,7 @@ class XMLBasedAtlas(BaseAtlas):
                 raise TypeError("Given coordinates must be a list or a tuple")
 
         else:
-            raise TypeError("Unknown shape of parameters `%s`" % `index`)
+            raise TypeError("Unknown shape of parameters `%s`" % repr(index))
 
         if query_voxel:
             return self.label_voxel(coord, levels)
@@ -489,7 +488,7 @@ class Level(object):
         """
         if level_type is None:
             if not 'type' in Elevel.attrib:
-                raise XMLAtlasException("Level must have type specified. Level: " + `Elevel`)
+                raise XMLAtlasException("Level must have type specified. Level: " + repr(Elevel))
             level_type = Elevel.get("type")
 
         levelTypes = { 'label':     LabelsLevel,
@@ -534,7 +533,7 @@ class LabelsLevel(Level):
 
         maxindex = max([int(i.get('index')) \
                         for i in Elevel.label[:]])
-        labels = [ None for i in xrange(maxindex+1) ]
+        labels = [ None for i in range(maxindex+1) ]
         for label in Elevel.label[:]:
             labels[ int(label.get('index')) ] = Label.from_xml(label)
 
@@ -572,8 +571,8 @@ class LabelsLevel(Level):
 
         if unique:
             if len(res) != 1:
-                raise ValueError, "Got %d matches whenever just 1 was " \
-                      "looked for (target was %s)." % (len(res), target)
+                raise ValueError("Got %d matches whenever just 1 was " \
+                      "looked for (target was %s)." % (len(res), target))
             return res[0]
         else:
             return res
@@ -597,7 +596,7 @@ class ReferencesLevel(Level):
         if not set(requiredAttrs) == set(Elevel.attrib.keys()):
             raise XMLAtlasException("ReferencesLevel has to have " +
                                     "following attributes defined " +
-                                    `requiredAttrs`)
+                                    repr(requiredAttrs))
 
         indexes = tuple(int(Elevel.get(a)) for a in ('x', 'y', 'z'))
 
@@ -660,13 +659,12 @@ class PyMVPAAtlas(XMLBasedAtlas):
                 try:
                     self._image  = nb.load(imagefilename + ext)
                     break
-                except Exception, e:
+                except Exception as e:
                     pass
             if self._image is None:
                 raise e
-        except RuntimeError, e:
-            raise RuntimeError, \
-                  " Cannot open file %s due to %s" % (imagefilename, e)
+        except RuntimeError as e:
+            raise RuntimeError(" Cannot open file %s due to %s" % (imagefilename, e))
 
         self._data = self._image.get_data()
         # we get the data as x,y,z[,t] but we want to have the time axis first
@@ -678,8 +676,8 @@ class PyMVPAAtlas(XMLBasedAtlas):
         if len(self._data.shape[0:-4]) > 0:
             bogus_dims = self._data.shape[0:-4]
             if max(bogus_dims)>1:
-                raise RuntimeError, "Atlas %s has more than 4 of non-singular" \
-                      "dimensions" % imagefilename
+                raise RuntimeError("Atlas %s has more than 4 of non-singular" \
+                      "dimensions" % imagefilename)
             new_shape = self._data.shape[-4:]
             self._data.reshape(new_shape)
 
@@ -825,9 +823,8 @@ class ReferencesAtlas(PyMVPAAtlas):
         if level in self._levels:
             self.__referenceLevel = self._levels[level]
         else:
-            raise IndexError, \
-                  "Unknown reference level %r. " % level + \
-                  "Known are %r" % (self._levels.keys(), )
+            raise IndexError("Unknown reference level %r. " % level + \
+                  "Known are %r" % (list(self._levels.keys()), ))
 
 
     ##REF: Name was automagically refactored

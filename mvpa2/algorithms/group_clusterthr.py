@@ -239,8 +239,8 @@ class GroupClusterThreshold(Learner):
         chunk_samples = dict([(c, np.where(ds.sa[chunk_attr].value == c)[0])
                               for c in ds.sa[chunk_attr].unique])
         # pre-built the bootstrap combinations
-        bcombos = [[random.sample(v, 1)[0] for v in chunk_samples.values()]
-                   for i in xrange(self.params.n_bootstrap)]
+        bcombos = [[random.sample(v, 1)[0] for v in list(chunk_samples.values())]
+                   for i in range(self.params.n_bootstrap)]
         bcombos = np.array(bcombos, dtype=int)
         #
         # Step 1: find the per-feature threshold that corresponds to some p
@@ -256,7 +256,7 @@ class GroupClusterThreshold(Learner):
         # across features
 
         def featuresegment_producer(ncols):
-            for segstart in xrange(0, ds.nfeatures, ncols):
+            for segstart in range(0, ds.nfeatures, ncols):
                 # one average map for every stored bcombo
                 # this also slices the input data into feature subsets
                 # for the compute blocks
@@ -400,7 +400,7 @@ class GroupClusterThreshold(Learner):
         )
         # evaluate a bunch of stats for all clusters
         morestats = {}
-        for cid in xrange(len(area)):
+        for cid in range(len(area)):
             # keep clusters on outer loop, because selection is more expensive
             clvals = ds.samples[0, labels == cid + 1]
             for id_, fx in (
@@ -413,7 +413,7 @@ class GroupClusterThreshold(Learner):
                 stats.append(fx(clvals))
                 morestats[id_] = stats
 
-        for k, v in morestats.items():
+        for k, v in list(morestats.items()):
             clusterstats[0].append(v)
             clusterstats[1].append(k)
 
@@ -507,7 +507,7 @@ def get_cluster_sizes(ds, cluster_counter=None):
     if hasattr(ds, 'a') and 'mapper' in ds.a:
         mapper = ds.a.mapper
 
-    for i in xrange(len(ds)):
+    for i in range(len(ds)):
         osamp = _verified_reverse1(mapper, data[i])
         m_clusters = _get_map_cluster_sizes(osamp)
         cluster_counter.update(m_clusters)
@@ -532,7 +532,7 @@ def get_cluster_pvals(sizes, null_sizes):
      this more naive implementation.
     """
     all_sizes = null_sizes + sizes
-    total_count = float(np.sum(all_sizes.values()))
+    total_count = float(np.sum(list(all_sizes.values())))
     # now we need to normalize them counting all to the "right", i.e larger than
     # current one
     right_tail = 0

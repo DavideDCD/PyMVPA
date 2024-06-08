@@ -99,7 +99,7 @@ class Node(ClassWithCollections):
                   (self.__class__.__name__, space, str(postproc)))
         self.set_space(space)
         self.set_postproc(postproc)
-        if isinstance(pass_attr, basestring):
+        if isinstance(pass_attr, str):
             pass_attr = (pass_attr,)
         self.__pass_attr = pass_attr
 
@@ -184,7 +184,7 @@ class Node(ClassWithCollections):
         pass_attr = self.__pass_attr
         if pass_attr is not None:
             ca = self.ca
-            ca_keys = self.ca.keys()
+            ca_keys = list(self.ca.keys())
             for a in pass_attr:
                 maxis = 0
                 rcol = None

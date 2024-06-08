@@ -24,6 +24,7 @@ import sys
 import os
 from mvpa2.base.config import ConfigManager
 from mvpa2.base.verbosity import LevelLogger, OnceLogger
+from functools import reduce
 
 
 #
@@ -43,12 +44,10 @@ class _SingletonType(type):
         return mcs._instances[sid]
 
 
-class __Singleton:
+class __Singleton(metaclass=_SingletonType):
     """To ensure single instance of a class instantiation (object)
 
     """
-
-    __metaclass__ = _SingletonType
 
     def __init__(self, *args):
         pass
@@ -337,7 +336,6 @@ if __debug__:
     debug.register('HPAL',   "Hyperalignment")
     debug.register('HPAL_',  "Hyperalignment (verbose)")
     debug.register('SHPAL',  "Searchlight Hyperalignment")
-    debug.register('CHPAL',  "Connectivity Hyperalignment")
     debug.register('GCTHR', "Group cluster threshold")
     debug.register('ATL', "Atlases")
     debug.register('ATL_', "Atlases (verbose)")

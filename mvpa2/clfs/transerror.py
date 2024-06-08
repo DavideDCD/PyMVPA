@@ -14,7 +14,7 @@ import mvpa2.support.copy as copy
 
 import numpy as np
 
-from StringIO import StringIO
+from io import StringIO
 from math import log10, ceil
 
 from mvpa2.base import externals
@@ -30,6 +30,7 @@ from mvpa2.base.state import ConditionalAttribute, ClassWithCollections, \
 from mvpa2.base.dochelpers import enhanced_doc_string, table2string
 from mvpa2.clfs.stats import auto_null_dist
 from mvpa2.support.due import due, Doi
+from functools import reduce
 
 if __debug__:
     from mvpa2.base import debug
@@ -112,39 +113,36 @@ class SummaryStatistics(object):
                 self.add(targets=targets, predictions=predictions,
                          estimates=estimates)
             else:
-                raise ValueError, \
-                      "Please provide none or both targets and predictions"
+                raise ValueError("Please provide none or both targets and predictions")
 
 
     def add(self, targets, predictions, estimates=None):
         """Add new results to the set of known results"""
         if len(targets) != len(predictions):
-            raise ValueError, \
-                  "Targets[%d] and predictions[%d]" % (len(targets),
+            raise ValueError("Targets[%d] and predictions[%d]" % (len(targets),
                                                        len(predictions)) + \
-                  " have different number of samples"
+                  " have different number of samples")
 
         # extract value if necessary
         if isinstance(estimates, Collectable):
             try:
                 estimates = estimates.value
-            except UnknownStateError, e:
+            except UnknownStateError as e:
                 estimates = None        # reset to None to be safe below
                 if __debug__:
                     debug('CM', "Cannot get yet uncollected estimates from %s",
                           estimates)
 
         if estimates is not None and len(targets) != len(estimates):
-            raise ValueError, \
-                  "Targets[%d] and estimates[%d]" % (len(targets),
+            raise ValueError("Targets[%d] and estimates[%d]" % (len(targets),
                                                   len(estimates)) + \
-                  " have different number of samples"
+                  " have different number of samples")
 
         # enforce labels in predictions to be of the same datatype as in
         # targets, since otherwise we are getting doubles for unknown at a
         # given moment labels
         nonetype = type(None)
-        for i in xrange(len(targets)):
+        for i in range(len(targets)):
             t1, t2 = type(targets[i]), type(predictions[i])
             # if there were no prediction made - leave None, otherwise
             # convert to appropriate type
@@ -314,7 +312,7 @@ class ROCCurve(object):
                     if (isinstance(v, dict) or # not dict for pairs
                         ((Nlabels >= 2) and len(v) != Nlabels)): # 1 per each label for multiclass
                         return False
-                except Exception, e:
+                except Exception as e:
                     # Something else which is not supported, like
                     # in shogun interface we don't yet extract values per each label or
                     # in pairs in the case of built-in multiclass
@@ -346,7 +344,7 @@ class ROCCurve(object):
                 # XXX ??? so we are going away from inplace modifications?
                 estimates = list(estimates)
             rangev = None
-            for i in xrange(len(estimates)):
+            for i in range(len(estimates)):
                 v = estimates[i]
                 if np.isscalar(v):
                     if Nlabels == 1:
@@ -365,13 +363,11 @@ class ROCCurve(object):
                             rangev = np.min(estimates_) + np.max(estimates_)
                         estimates[i] = [rangev - v, v]
                     else:
-                        raise ValueError, \
-                              "Cannot have a single 'value' for multiclass" \
-                              " classification. Got %s" % (v)
+                        raise ValueError("Cannot have a single 'value' for multiclass" \
+                              " classification. Got %s" % (v))
                 elif len(v) != Nlabels:
-                    raise ValueError, \
-                          "Got %d estimates whenever there is %d labels" % \
-                          (len(v), Nlabels)
+                    raise ValueError("Got %d estimates whenever there is %d labels" % \
+                          (len(v), Nlabels))
             # reassign possibly adjusted estimates
             sets_wv[iset] = (s[0], s[1], np.asarray(estimates))
 
@@ -616,7 +612,7 @@ class ConfusionMatrix(SummaryStatistics):
         labels_map_rev = None
         if labels_map is not None:
             labels_map_rev = {}
-            for k,v in labels_map.iteritems():
+            for k,v in labels_map.items():
                 v_mapping = labels_map_rev.get(v, [])
                 v_mapping.append(k)
                 labels_map_rev[v] = v_mapping
@@ -733,9 +729,8 @@ class ConfusionMatrix(SummaryStatistics):
         if len(aucs)>0:
             stats['AUC'] = aucs
             if len(aucs) != Nlabels:
-                raise RuntimeError, \
-                      "We must got a AUC per label. Got %d instead of %d" % \
-                      (len(aucs), Nlabels)
+                raise RuntimeError("We must got a AUC per label. Got %d instead of %d" % \
+                      (len(aucs), Nlabels))
             self.ROC = ROC
         else:
             # we don't want to provide ROC if it is bogus
@@ -744,7 +739,7 @@ class ConfusionMatrix(SummaryStatistics):
 
 
         # compute mean stats
-        for k,v in stats.items():
+        for k,v in list(stats.items()):
             stats['mean(%s)' % k] = np.mean(v)
 
         self._stats.update(stats)
@@ -814,9 +809,8 @@ class ConfusionMatrix(SummaryStatistics):
         pref = ' '*(prefixlen) # empty prefix
 
         if matrix.shape != (Nlabels, Nlabels):
-            raise ValueError, \
-                  "Number of labels %d doesn't correspond the size" + \
-                  " of a confusion matrix %s" % (Nlabels, matrix.shape)
+            raise ValueError("Number of labels %d doesn't correspond the size" + \
+                  " of a confusion matrix %s" % (Nlabels, matrix.shape))
 
         # list of lists of what is printed
         printed = []
@@ -849,7 +843,7 @@ class ConfusionMatrix(SummaryStatistics):
             printed.append(['@lPer target:'] + underscores)
             for stat in stats_pertarget:
                 printed.append([stat] + [
-                    _p2(stats[stat][i]) for i in xrange(Nlabels)])
+                    _p2(stats[stat][i]) for i in range(Nlabels)])
 
             # compute mean stats
             # XXX refactor to expose them in stats as well, as
@@ -951,10 +945,10 @@ class ConfusionMatrix(SummaryStatistics):
         if labels_map_rev is not None:
             labels_rev = [','.join([str(x) for x in labels_map_rev[l]])
                                    for l in labels]
-            labels_map_full = dict(zip(labels_rev, labels))
+            labels_map_full = dict(list(zip(labels_rev, labels)))
 
         if labels_order is not None:
-            labels_order_filtered = filter(lambda x:x is not None, labels_order)
+            labels_order_filtered = [x for x in labels_order if x is not None]
             labels_order_filtered_set = set(labels_order_filtered)
             # Verify if all labels provided in labels
             if set(labels) == labels_order_filtered_set:
@@ -970,10 +964,9 @@ class ConfusionMatrix(SummaryStatistics):
                     if l is not None: v = labels_map_full[l]
                     labels_plot += [v]
             else:
-                raise ValueError, \
-                      "Provided labels %s do not match set of known " \
+                raise ValueError("Provided labels %s do not match set of known " \
                       "original labels (%s) or mapped labels (%s)" % \
-                      (labels_order, labels, labels_rev)
+                      (labels_order, labels, labels_rev))
         else:
             labels_plot = labels
 
@@ -985,9 +978,8 @@ class ConfusionMatrix(SummaryStatistics):
         Nlabels = len(labels_plot)
 
         if matrix.shape != (NlabelsNN, NlabelsNN):
-            raise ValueError, \
-                  "Number of labels %d doesn't correspond the size" + \
-                  " of a confusion matrix %s" % (NlabelsNN, matrix.shape)
+            raise ValueError("Number of labels %d doesn't correspond the size" + \
+                  " of a confusion matrix %s" % (NlabelsNN, matrix.shape))
 
         confusionmatrix = np.zeros((Nlabels, Nlabels))
         mask = confusionmatrix.copy()
@@ -1101,7 +1093,7 @@ class ConfusionMatrix(SummaryStatistics):
         if val is None or isinstance(val, dict):
             self.__labels_map = val
         else:
-            raise ValueError, "Cannot set labels_map to %s" % val
+            raise ValueError("Cannot set labels_map to %s" % val)
         # reset it just in case
         self.__labels_map_rev = None
         self._computed = False
@@ -1302,7 +1294,7 @@ class BayesConfusionHypothesis(Node):
         hypotheses = self._hypotheses
         if hypotheses is None:
             # generate all possible hypotheses if none are given
-            partitions = Partition(range(len(ds)))
+            partitions = Partition(list(range(len(ds))))
         else:
             if self._labels_attr in ds.sa:
                 # literal labels are given -> recode into digits to match
@@ -1414,7 +1406,7 @@ class RegressionStatistics(SummaryStatistics):
             funcs['CCe'] = corr_error
             funcs['CCp'] = corr_error_prob
 
-        for funcname, func in funcs.iteritems():
+        for funcname, func in funcs.items():
             funcname_all = funcname + '_all'
             stats[funcname_all] = []
             for i, (targets, predictions, estimates) in enumerate(sets):
@@ -1433,7 +1425,7 @@ class RegressionStatistics(SummaryStatistics):
             targets += list(targets_)
             predictions += list(predictions_)
 
-        for funcname, func in funcs.iteritems():
+        for funcname, func in funcs.items():
             funcname_all = 'Summary ' + funcname
             stats[funcname_all] = func(predictions, targets)
 
@@ -1487,7 +1479,7 @@ class RegressionStatistics(SummaryStatistics):
             for s in self.sets:
                 nsamples = len(s[0])
                 xend = xstart+nsamples
-                xs = xrange(xstart, xend)
+                xs = range(xstart, xend)
                 lines += [pl.plot(xs, s[0], 'b')]
                 lines += [pl.plot(xs, s[1], 'r')]
                 # vertical line
@@ -1765,9 +1757,8 @@ class ConfusionBasedError(ClassifierError):
         """What state to extract from"""
 
         if not confusion_state in clf.ca:
-            raise ValueError, \
-                  "Conditional attribute %s is not defined for classifier %r" % \
-                  (confusion_state, clf)
+            raise ValueError("Conditional attribute %s is not defined for classifier %r" % \
+                  (confusion_state, clf))
         if not clf.ca.is_enabled(confusion_state):
             if __debug__:
                 debug('CERR', "Forcing state %s to be enabled for %r" %

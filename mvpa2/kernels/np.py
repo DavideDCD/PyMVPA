@@ -204,8 +204,8 @@ class GeneralizedLinearKernel(NumpyKernel):
             # with scalar above
             data2_sc = np.dot(Sigma_p, data2.T)
         else:
-            raise ValueError, "Please provide Sigma_p as a scalar, vector, " \
-                  "or square (diagonal) matrix."
+            raise ValueError("Please provide Sigma_p as a scalar, vector, " \
+                  "or square (diagonal) matrix.")
 
         # XXX if Sigma_p is changed a warning should be issued!
         # XXX other cases of incorrect Sigma_p could be catched
@@ -223,7 +223,7 @@ class GeneralizedLinearKernel(NumpyKernel):
                 gsize = (len(data1), len(data2), nfeat)
                 if do_g:  g_Sigma_p = np.empty(gsize)
                 if do_gl: gl_Sigma_p = np.empty(gsize)
-                for i in xrange(nfeat):
+                for i in range(nfeat):
                     outer = np.multiply.outer(data1[:, i], data2[:, i])
                     if do_g:  g_Sigma_p[:, :, i] = outer
                     if do_gl: gl_Sigma_p = Sigma_p[i] * outer

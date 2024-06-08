@@ -20,6 +20,7 @@ import subprocess
 from mvpa2.base import warning
 from mvpa2 import cfg
 from mvpa2.misc.support import SmartVersion
+from functools import reduce
 
 if __debug__:
     from mvpa2.base import debug
@@ -64,7 +65,7 @@ def __check_numpy_correct_unique():
     import numpy as np
     try:
         _ = np.unique(np.array([1, None, "str"]))
-    except TypeError, e:
+    except TypeError as e:
         raise RuntimeError("numpy.unique thrown %s" % e)
 
 def __assign_scipy_version():
@@ -136,7 +137,7 @@ def __assign_mdp_version():
 def __assign_nibabel_version():
     try:
         import nibabel
-    except Exception, e:
+    except Exception as e:
         # FloatingError is defined in the same module which precludes
         # its specific except
         e_str = str(e)
@@ -260,7 +261,7 @@ def __check_scipy_weave():
     """
     try:
         from scipy import weave
-    except OSError, e:
+    except OSError as e:
         raise ImportError(
             "Weave cannot be used due to failure to import because of %s"
             % e)
@@ -273,7 +274,7 @@ def __check_scipy_weave():
     oargv = sys.argv[:]
     ostdout = sys.stdout
     if not(__debug__ and 'EXT_' in debug.active):
-        from StringIO import StringIO
+        from io import StringIO
         sys.stdout = StringIO()
         # *nix specific solution to shut weave up.
         # Some users must complain and someone
@@ -289,7 +290,7 @@ def __check_scipy_weave():
                                verbose=0,
                                extra_compile_args=compile_args,
                                compiler='gcc')
-    except Exception, e:
+    except Exception as e:
         fmsg = "Failed to build simple weave sample." \
                " Exception was %s" % str(e)
 
@@ -328,7 +329,7 @@ def __check_stablerdist():
         #     rdist are misbehaving, so there should be no _cdf
         distributions = scipy.stats.distributions
         if 'rdist_gen' in dir(distributions) \
-            and ('_cdf' in distributions.rdist_gen.__dict__.keys()):
+            and ('_cdf' in list(distributions.rdist_gen.__dict__.keys())):
             raise ImportError(
                 "scipy.stats carries misbehaving rdist distribution")
     except ZeroDivisionError:
@@ -358,7 +359,7 @@ def __check_rv_continuous_reduce_func():
 
 def __check_in_ipython():
     # figure out if ran within IPython
-    if '__IPYTHON__' in dir(globals()['__builtins__']):
+    if '__IPYTHON__' in globals()['__builtins__']:
         return
     raise RuntimeError("Not running in IPython session")
 
@@ -458,7 +459,7 @@ def __check_reportlab():
     versions['reportlab'] = SmartVersion(rl.Version)
 
 def __check(name, a='__version__'):
-    exec "import %s" % name
+    exec("import %s" % name)
     # it might be lxml.etree, so take only first module
     topmodname = name.split('.')[0]
     try:
@@ -506,7 +507,7 @@ def _R_library(libname):
                 % libname))[0]:
             raise ImportError("It seems that R cannot load library %r"
                               % libname)
-    except Exception, e:
+    except Exception as e:
         raise ImportError("Failed to load R library %r due to %s"
                           % (libname, e))
 
@@ -530,7 +531,7 @@ def __check_liblapack_so():
     from ctypes import cdll
     try:
         _ = cdll.LoadLibrary('liblapack.so')
-    except OSError, e:
+    except OSError as e:
         # reraise with exception type we catch/handle while testing externals
         raise RuntimeError("Failed to import liblapack.so: %s" % e)
 
@@ -538,7 +539,7 @@ def __check_subprocess_call(args):
     """Executes the command using subprocess"""
     try:
         subprocess.check_output(args)
-    except Exception, e:
+    except Exception as e:
         raise ImportError('The following command gave an error: "%s"' % args)
 
 
@@ -603,7 +604,6 @@ _KNOWN = {'libsvm': 'import mvpa2.clfs.libsvmc._svm as __; x=__.seq_to_svm_node'
           'reportlab': "__check('reportlab', 'Version')",
           'nose': "import nose as __",
           'pprocess': "__check('pprocess')",
-          'pandas': "__check('pandas')",
           'joblib': "__check('joblib')",
           'h5py': "__check_h5py()",
           'hdf5': "__check_h5py()",
@@ -697,11 +697,11 @@ def exists(dep, force=False, raise_=False, issueWarning=None,
 
             error_str = ''
             try:
-                exec _KNOWN[dep]
+                exec(_KNOWN[dep])
                 result = True
-            except tuple(_caught_exceptions), e:
+            except tuple(_caught_exceptions) as e:
                 error_str = ". Caught exception was: " + str(e)
-            except Exception, e:
+            except Exception as e:
                 # Add known ones by their names so we don't need to
                 # actually import anything manually to get those classes
                 if e.__class__.__name__ in ['RPy_Exception', 'RRuntimeError',

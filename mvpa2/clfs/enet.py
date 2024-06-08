@@ -145,10 +145,9 @@ class ENET(Classifier):
                        intercept=self.__intercept,
                        trace=self.__trace,
                        **enet_kwargs)
-        except RRuntimeError, e:
-            raise FailedToTrainError, \
-                  "Failed to predict on %s using %s. Exceptions was: %s" \
-                  % (data, self, e)
+        except RRuntimeError as e:
+            raise FailedToTrainError("Failed to predict on %s using %s. Exceptions was: %s" \
+                  % (data, self, e))
 
         # find the step with the lowest Cp (risk)
         # it is often the last step if you set a max_steps
@@ -180,10 +179,9 @@ class ENET(Classifier):
                             type='fit',
                             s=rpy2.robjects.IntVector(self.__beta_pure_shape))
             fit = np.asanyarray(Rrx2(res, 'fit'))[:, -1]
-        except RRuntimeError, e:
-            raise FailedToPredictError, \
-                  "Failed to predict on %s using %s. Exceptions was: %s" \
-                  % (data, self, e)
+        except RRuntimeError as e:
+            raise FailedToPredictError("Failed to predict on %s using %s. Exceptions was: %s" \
+                  % (data, self, e))
 
         if len(fit.shape) == 0:
             # if we just got 1 sample with a scalar

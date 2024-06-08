@@ -253,9 +253,9 @@ class ModelSelector(object):
             # XXX: should we use debug() for the following messages?
             # If so, how can we track the missing convergence to a
             # solution?
-            print "Unable to find a maximum to log_marginal_likelihood"
+            print("Unable to find a maximum to log_marginal_likelihood")
         elif result.stopcase == 0:
-            print "Limits exceeded"
+            print("Limits exceeded")
         elif result.stopcase == 1:
             self.hyperparameters_best = self.hyp_initial_guess.copy()
             if self.logscale:

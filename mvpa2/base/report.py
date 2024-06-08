@@ -132,9 +132,8 @@ class Report(object):
             styles = rpls.getSampleStyleSheet()
             self.style = styles.byName[style]
         except KeyError:
-            raise ValueError, \
-                  "Style %s is not know to reportlab. Known are %s" \
-                  % (styles.keys())
+            raise ValueError("Style %s is not know to reportlab. Known are %s" \
+                  % (list(styles.keys())))
 
         self._story = []
 
@@ -270,7 +269,7 @@ class Report(object):
         figs = pl.matplotlib._pylab_helpers.Gcf.figs
         if __debug__ and not self in debug.handlers:
             debug('REP', "Saving all %d present figures" % len(figs))
-        for fid, f in figs.iteritems():
+        for fid, f in figs.items():
             self.figure(f.canvas.figure, *args, **kwargs)
 
     @property

@@ -37,7 +37,6 @@ __docformat__ = 'restructuredtext'
 
 import numpy as np
 import h5py
-#import h5py.highlevel  # >= 2.8.0, https://github.com/h5py/h5py/issues/1063
 
 import os
 import os.path as osp
@@ -50,15 +49,12 @@ from mvpa2.misc.support import builtins_mod
 if __debug__:
     from mvpa2.base import debug
 
-decode = lambda x: x.decode() if 'decode' in dir(x) else x
-
 # don't ask -- makes history re-education a breeze
 universal_classname_remapper = {
     ('mvpa2.mappers.base', 'FeatureSliceMapper'): ('mvpa2.featsel.base',
                                                    'StaticFeatureSelection'),
 }
 
-_hdf5_version = externals.versions['hdf5']
 
 # Comment: H5Py defines H5Error
 class HDF5ConversionError(Exception):
@@ -120,13 +116,13 @@ def hdf2obj(hdf, memo=None):
             debug('HDF5', "Load from HDF5 dataset [%s]" % hdf.name)
         if 'is_scalar' in hdf.attrs:
             # extract the scalar from the 0D array
-            obj = decode(hdf[()])
+            obj = hdf[()]
             # and coerce it back into the native Python type if necessary
             if issubclass(type(obj), np.generic):
-                obj = np.asscalar(obj) if 'asscalar' in dir(np) else obj.item()
-        elif 'is_numpy_scalar' in hdf.attrs and 'is_a_view' not in hdf.attrs:
+                obj = np.asscalar(obj)
+        elif 'is_numpy_scalar' in hdf.attrs:
             # extract the scalar from the 0D array as is
-            obj = decode(hdf[()])
+            obj = hdf[()]
         else:
             obj = _hdf_to_ndarray(hdf)
 
@@ -139,7 +135,7 @@ def hdf2obj(hdf, memo=None):
                 "object (content: '%s', attributes: '%s')."
                 % (hdf.name, list(hdf.keys()), list(hdf.attrs.keys())))
 
-        mod_name = decode(hdf.attrs['module'])
+        mod_name = hdf.attrs['module'].decode()
 
         if __debug__:
             if 'class' in hdf.attrs:
@@ -154,7 +150,7 @@ def hdf2obj(hdf, memo=None):
             obj = _recon_customobj_customrecon(hdf, memo)
         elif mod_name != builtins_mod:
             # Custom objects default reconstructor
-            cls_name = decode(hdf.attrs['class'])
+            cls_name = hdf.attrs['class'].decode()
             if cls_name in ('function', 'type', 'builtin_function_or_method'):
                 # Functions and types
                 obj = _recon_functype(hdf)
@@ -163,7 +159,7 @@ def hdf2obj(hdf, memo=None):
                 obj = _recon_customobj_defaultrecon(hdf, memo)
         else:
             # Built-in objects
-            cls_name = decode(hdf.attrs['class'])
+            cls_name = hdf.attrs['class'].decode()
             if __debug__:
                 debug('HDF5', "Reconstructing built-in object '%s'." % cls_name)
             # built in type (there should be only 'list', 'dict' and 'None'
@@ -208,9 +204,9 @@ def hdf2obj(hdf, memo=None):
 
 def _recon_functype(hdf):
     """Reconstruct a function or type from HDF"""
-    cls_name = decode(hdf.attrs['class'])
-    mod_name = decode(hdf.attrs['module'])
-    ft_name = decode(hdf.attrs['name'])
+    cls_name = hdf.attrs['class'].decode()
+    mod_name = hdf.attrs['module'].decode()
+    ft_name = hdf.attrs['name'].decode()
     if __debug__:
         debug('HDF5', "Load '%s.%s.%s' [%s]"
                       % (mod_name, cls_name, ft_name, hdf.name))
@@ -249,8 +245,8 @@ def _recon_customobj_customrecon(hdf, memo):
     """Reconstruct a custom object from HDF using a custom recontructor"""
     # we found something that has some special idea about how it wants
     # to be reconstructed
-    mod_name = decode(hdf.attrs['module'])
-    recon_name = decode(hdf.attrs['recon'])
+    mod_name = hdf.attrs['module'].decode()
+    recon_name = hdf.attrs['recon'].decode()
     if __debug__:
         debug('HDF5', "Load from custom reconstructor '%s.%s' [%s]"
                       % (mod_name, recon_name, hdf.name))
@@ -328,8 +324,8 @@ def _import_from_thin_air(mod_name, importee, cls_name=None):
 
 def _recon_customobj_defaultrecon(hdf, memo):
     """Reconstruct a custom object from HDF using the default recontructor"""
-    cls_name = decode(hdf.attrs['class'])
-    mod_name = decode(hdf.attrs['module'])
+    cls_name = hdf.attrs['class'].decode()
+    mod_name = hdf.attrs['module'].decode()
     if __debug__:
         debug('HDF5', "Load class instance '%s.%s' instance [%s]"
                       % (mod_name, cls_name, hdf.name))
@@ -394,7 +390,7 @@ def _hdf_dict_to_obj(hdf, memo, skip=None):
             except TypeError:
                 # fucked up dataset -- trying our best
                 if isinstance(k, np.ndarray):
-                    d[np.asscalar(k) if 'asscalar' in dir(np) else k.item()] = v
+                    d[np.asscalar(k)] = v
                 else:
                     # no idea, really
                     raise
@@ -543,26 +539,21 @@ def _hdf_to_ndarray(hdf):
 
     if 'is_a_view' in hdf.attrs:
         assert ('c_order' in hdf.attrs)
-        if _hdf5_version < '1.8.7' and not 'shape' in hdf.attrs:
+        if externals.versions['hdf5'] < '1.8.7' and not 'shape' in hdf.attrs:
             shape = tuple()
-        elif 'shape' in hdf.attrs:
+        else:
+            assert ('shape' in hdf.attrs)
             shape = hdf.attrs['shape']
-        else:  # numpy scalar
-            shape = None
         if 'dtype_names' in hdf.attrs:
             assert('dtype' not in hdf.attrs)
             names = [x for x in hdf.attrs['dtype_names']]
-            dtypes = [decode(x) for x in hdf.attrs['dtype_types']]
+            dtypes = [x.decode() for x in hdf.attrs['dtype_types']]
             dtype = list(zip(names, dtypes))
         else:
             assert('dtype' in hdf.attrs)
-            dtype = decode(hdf.attrs['dtype'])
-        kw = dict() if shape is not None else {}
-        obj = np.frombuffer(obj.data, dtype=dtype, **kw)
+            dtype = hdf.attrs['dtype'].decode()
+        obj = np.frombuffer(obj.data, dtype=dtype, count=int(np.prod(shape)))
         obj = obj.reshape(shape, order=['F', 'C'][int(hdf.attrs['c_order'])])
-        if shape is None and isinstance(obj, np.ndarray):  # numpy scalar
-            assert obj.size == 1
-            obj = obj[0]
     return obj
 
 
@@ -633,7 +624,6 @@ def obj2hdf(hdf, obj, name=None, memo=None, noid=False, **kwargs):
     #
     is_objarray = False                # assume the bright side ;-)
     is_ndarray = isinstance(obj, np.ndarray)
-    shape = None
     if is_ndarray:
         shape = obj.shape
         if obj.dtype == np.object:
@@ -679,15 +669,7 @@ def obj2hdf(hdf, obj, name=None, memo=None, noid=False, **kwargs):
 
         is_a_view = False
         try:
-            if is_numpy_scalar and type(obj) == np.float128 and _hdf5_version < '2.9.0':
-                # h5py cannot do full round trip on this dtype
-                # see https://github.com/h5py/h5py/commit/6b6880b40ae1ac014fad6f1d6eaa1f0388e76160
-                # Store as a view - should work for any.  With new version of
-                # h5py will store as a regular scalar.  Worked for Yarik
-                # on Debian with 2.8.0-3 and 2.9.0-1
-                is_a_view = True
-            else:
-                hdf.create_dataset(name, None, None, obj, **kwargs)
+            hdf.create_dataset(name, None, None, obj, **kwargs)
         except TypeError as exc:
             exc_str = str(exc)
             if ("No conversion path for dtype" in exc_str):
@@ -700,7 +682,7 @@ def obj2hdf(hdf, obj, name=None, memo=None, noid=False, **kwargs):
         # we would need to save a view of the bytes and other
         # parameters (shape, dtype, order) to reconstruct later
         if is_a_view:
-            assert(is_ndarray or is_numpy_scalar)
+            assert(is_ndarray)
             # do conversion to pure byte array, by using array's buffer
             if not ((obj.flags.c_contiguous or obj.flags.f_contiguous)
                     and obj.flags.aligned):
@@ -738,7 +720,7 @@ def obj2hdf(hdf, obj, name=None, memo=None, noid=False, **kwargs):
             # we need to confess the true origin
             hdf[name].attrs.create('is_objarray', True)
 
-        if shape is not None and (is_objarray or is_a_view):
+        if is_objarray or is_a_view:
             # it was of more than 1 dimension or it was a scalar
             if not len(shape) and externals.versions['hdf5'] < '1.8.7':
                 if __debug__:

@@ -288,7 +288,7 @@ if externals.exists("running ipython env"):
     try:
         from mvpa2.support.ipython import *
         ipy_activate_pymvpa_goodies()
-    except Exception, e:
+    except Exception as e:
         warning("Failed to activate custom IPython completions due to %s" % e)
 
 def suite_stats(scope_dict=None):
@@ -327,7 +327,7 @@ def suite_stats(scope_dict=None):
         elif hasattr(e, '__class__'):
             return _get_path(e.__class__)
         else:
-            raise RuntimeError, "Could not figure out path for %s" % e
+            raise RuntimeError("Could not figure out path for %s" % e)
 
 
     class EnvironmentStatistics(dict):
@@ -335,12 +335,12 @@ def suite_stats(scope_dict=None):
             dict.__init__(self, foreign={})
             # compute cruel stats
             mvpa_str = '%smvpa' % os.path.sep
-            for k, e in d.iteritems():
+            for k, e in d.items():
                 found = False
                 for ty, tk, check_path in (
                     (list, "lists", False),
                     (str, "strings", False),
-                    (unicode, "strings", False),
+                    (str, "strings", False),
                     (BuiltinFileType, "files", False),
                     (types.BuiltinFunctionType, None, True),
                     (types.BuiltinMethodType, None, True),
@@ -366,8 +366,7 @@ def suite_stats(scope_dict=None):
                             self[tk][k] = e
                         break
                 if not found:
-                    raise ValueError, \
-                          "Could not figure out placement for %s %s" % (k, e)
+                    raise ValueError("Could not figure out placement for %s %s" % (k, e))
 
         def __str__(self):
             s = ""

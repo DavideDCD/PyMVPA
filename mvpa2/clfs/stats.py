@@ -8,7 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Estimator for classifier error distributions."""
 
-from __future__ import with_statement   # Let's start using with
+   # Let's start using with
 
 __docformat__ = 'restructuredtext'
 
@@ -98,9 +98,8 @@ class Nonparametric(object):
         elif self._correction is None:
             pass
         else:
-            raise ValueError, \
-                  '%r is incorrect value for correction parameter of %s' \
-                  % (self._correction, self.__class__.__name__)
+            raise ValueError('%r is incorrect value for correction parameter of %s' \
+                  % (self._correction, self.__class__.__name__))
         return res
 
 
@@ -232,15 +231,15 @@ class NullDist(ClassWithCollections):
         if prefixes is None:
             prefixes = []
         return super(NullDist, self).__repr__(
-            prefixes=["tail=%s" % `self.__tail`] + prefixes)
+            prefixes=["tail=%s" % repr(self.__tail)] + prefixes)
 
 
     ##REF: Name was automagically refactored
     def _set_tail(self, tail):
         # sanity check
         if tail not in ('left', 'right', 'any', 'both'):
-            raise ValueError, 'Unknown value "%s" to `tail` argument.' \
-                  % tail
+            raise ValueError('Unknown value "%s" to `tail` argument.' \
+                  % tail)
         self.__tail = tail
 
 
@@ -406,7 +405,7 @@ class MCNullDist(NullDist):
             try:
                 res = measure(permuted_ds)
                 dist_samples.append(res.samples)
-            except LearnerError, e:
+            except LearnerError as e:
                 if __debug__:
                     debug('STATMC', " skipped", cr=True)
                 warning('Failed to obtain value from %s due to %s.  Measurement'
@@ -463,7 +462,7 @@ class MCNullDist(NullDist):
             # XXX We might not want to descriminate that way since
             # usually generators also have .cdf where they rely on the
             # default parameters. But then what about Nonparametric
-            raise RuntimeError, "Distribution has to be fit first"
+            raise RuntimeError("Distribution has to be fit first")
 
         is_scalar = np.isscalar(x)
         if is_scalar:
@@ -475,9 +474,9 @@ class MCNullDist(NullDist):
         x = x.reshape((-1,))
 
         if len(self._dist) != len(x):
-            raise ValueError, 'Distribution was fit for structure with %d' \
+            raise ValueError('Distribution was fit for structure with %d' \
                   ' elements, whenever now queried with %d elements' \
-                  % (len(self._dist), len(x))
+                  % (len(self._dist), len(x)))
 
         # extract cdf values per each element
         if cdf_func == 'cdf':
@@ -562,7 +561,7 @@ class FixedNullDist(NullDist):
     def __repr__(self, prefixes=None):
         if prefixes is None:
             prefixes = []
-        prefixes_ = ["dist=%s" % `self._dist`]
+        prefixes_ = ["dist=%s" % repr(self._dist)]
         return super(FixedNullDist, self).__repr__(
             prefixes=prefixes_ + prefixes)
 
@@ -689,9 +688,8 @@ if externals.exists('scipy'):
             if args is not None:
                 Narg = len(args)
                 if Narg > Narg_:
-                    raise ValueError, \
-                          'Distribution %s has only %d arguments. Got %d' \
-                          % (dist, Narg_, Narg)
+                    raise ValueError('Distribution %s has only %d arguments. Got %d' \
+                          % (dist, Narg_, Narg))
                 args += (None,) * (Narg_ - Narg)
             else:
                 args = (None,) * Narg_
@@ -733,7 +731,7 @@ if externals.exists('scipy'):
                 args = fargs[:-2]
 
             except IndexError:
-                raise ValueError, "Not enough input arguments."
+                raise ValueError("Not enough input arguments.")
             if not self._argcheck(*args) or scale <= 0:
                 return np.inf
             x = np.asarray((x-loc) / scale)
@@ -744,13 +742,13 @@ if externals.exists('scipy'):
                 return self._nnlf(x, *args) + len(x)*np.log(scale)
 
         def fit(self, data, *args, **kwds):
-            loc0, scale0 = map(kwds.get, ['loc', 'scale'], [0.0, 1.0])
+            loc0, scale0 = list(map(kwds.get, ['loc', 'scale'], [0.0, 1.0]))
             fargs, fargs_i = self._fargs
             Narg = len(args)
             Narg_ = self.numargs
             if Narg != Narg_:
                 if Narg > Narg_:
-                    raise ValueError, "Too many input arguments."
+                    raise ValueError("Too many input arguments.")
                 else:
                     args += (1.0,)*(self.numargs-Narg)
 
@@ -869,8 +867,8 @@ if externals.exists('scipy'):
         # Handle parameters
         _KNOWN_TESTS = ['p-roc', 'kstest']
         if not test in _KNOWN_TESTS:
-            raise ValueError, 'Unknown kind of test %s. Known are %s' \
-                  % (test, _KNOWN_TESTS)
+            raise ValueError('Unknown kind of test %s. Known are %s' \
+                  % (test, _KNOWN_TESTS))
 
         data = np.ravel(data)
         # data sampled
@@ -892,9 +890,9 @@ if externals.exists('scipy'):
             data_p_thr = np.abs(data_p) <= p_thr
             true_positives = np.sum(data_p_thr)
             if true_positives == 0:
-                raise ValueError, "Provided data has no elements in non-" \
+                raise ValueError("Provided data has no elements in non-" \
                       "parametric distribution under p<=%.3f. Please " \
-                      "increase the size of data or value of p" % p_thr
+                      "increase the size of data or value of p" % p_thr)
             if __debug__:
                 debug('STAT_', 'Number of positives in non-parametric '
                       'distribution is %d' % true_positives)
@@ -921,14 +919,13 @@ if externals.exists('scipy'):
         results = []
         for d in distributions:
             dist_gen, loc_, scale_, args_ = None, loc, scale, args
-            if isinstance(d, basestring):
+            if isinstance(d, str):
                 dist_gen = d
                 dist_name = d
             elif isinstance(d, tuple):
                 if not (len(d)==2 and isinstance(d[1], dict)):
-                    raise ValueError,\
-                          "Tuple specification of distribution must be " \
-                          "(d, {params}). Got %s" % (d,)
+                    raise ValueError("Tuple specification of distribution must be " \
+                          "(d, {params}). Got %s" % (d,))
                 dist_gen = d[0]
                 loc_ = d[1].get('loc', loc)
                 scale_ = d[1].get('scale', scale)
@@ -975,7 +972,7 @@ if externals.exists('scipy'):
                     if __debug__:
                         res_sum = 'D=%.3f p=%.3f' % (D, p)
             except (TypeError, ValueError, AttributeError,
-                    NotImplementedError), e:#Exception, e:
+                    NotImplementedError) as e:#Exception, e:
                 if __debug__:
                     debug('STAT__',
                           'Testing for %s distribution failed due to %s',
@@ -1094,7 +1091,7 @@ if externals.exists('scipy'):
 
             lines = []
             labels = []
-            for i in xrange(min(nbest, len(matches))):
+            for i in range(min(nbest, len(matches))):
                 D, dist_gen, dist_name, params = matches[i]
                 dist = getattr(scipy.stats, dist_gen)(*params)
                 rcdf = _auto_rcdf(dist)
