@@ -80,7 +80,7 @@ def svd(a, full_matrices=True, algo='svd', **kwargs):
                 byref(ldvt), work, byref(lwork), iwork, byref(info))
         
     if info.value >= 1:
-        print "DBSQR did not converge for %i superdiagonals"%(info.value)
+        print("DBSQR did not converge for %i superdiagonals"%(info.value))
     #    raise LinAlgError
     #if info.value <= -1:
     #    print "Interesting!!! \nQuick, go find swaroop"

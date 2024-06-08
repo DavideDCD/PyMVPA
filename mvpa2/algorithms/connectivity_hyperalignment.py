@@ -145,7 +145,7 @@ class ConnectivityHyperalignment(SearchlightHyperalignment):
         seed_data = seed_data(dataset)
         zscore(seed_data, chunks_attr=None)
         return seed_data
-    
+
     def _get_sl_connectomes(self, seed_means, qe_all, datasets, inode, connectivity_mapper):
         # For each SL, computing connectivity of features to seed means
         sl_connectomes = []
@@ -158,7 +158,7 @@ class ConnectivityHyperalignment(SearchlightHyperalignment):
                 sl_ids = sl_ids.samples[0, :].tolist()
             sl_connectomes.append(connectivity_mapper.forward(sd[:, sl_ids]))
         return sl_connectomes
-    
+
     def _get_hypesvs(self, sl_connectomes, local_common_model=None):
         '''
         Hyperalign connectomes and return mapppers
@@ -203,7 +203,7 @@ class ConnectivityHyperalignment(SearchlightHyperalignment):
         params = self.params
         # If no precomputed connectomes are supplied, compute them.
         if params.connectomes is not None and os.path.exists(params.connectomes):
-            _chpaldebug("Loading pre-computed connectomes from %s" % params.connectomes)
+            _chpaldebug("Loading pre-computed connectomes from ", params.connectomes)
             connectomes = h5load(params.connectomes)
             return connectomes
         connectivity_mapper = FxyMapper(params.conn_metric)
@@ -269,7 +269,7 @@ class ConnectivityHyperalignment(SearchlightHyperalignment):
                     pcd.append(sd_svs)
             if params.save_model is not None:
                 # TODO: should use debug
-                print('Saving local models to %s' % params.save_model)
+                print(('Saving local models to %s' % params.save_model))
                 h5save(params.save_model, sl_common_models)
             pc_data = [hstack(pcd) for pcd in pc_data]
             conn_targets = pc_data
@@ -278,7 +278,7 @@ class ConnectivityHyperalignment(SearchlightHyperalignment):
         connectomes = []
         if params.common_model is not None and os.path.exists(params.common_model):
             # TODO: should use debug
-            print('Loading from saved common model: %s' % params.common_model)
+            print(('Loading from saved common model: %s' % params.common_model))
             connectome_model = common_model['connectome_model']
             connectomes.append(connectome_model)
         for t_, ds in zip(conn_targets, datasets):

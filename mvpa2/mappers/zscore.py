@@ -149,7 +149,7 @@ class ZScoreMapper(Mapper):
 
         if __debug__ and chunks_attr is not None:
             nsamples_per_chunk = get_nsamples_per_attr(ds, chunks_attr)
-            min_nsamples_per_chunk = np.min(nsamples_per_chunk.values())
+            min_nsamples_per_chunk = np.min(list(nsamples_per_chunk.values()))
             if min_nsamples_per_chunk in range(3, 6):
                 warning("Z-scoring chunk-wise having a chunk with only "
                         "%d samples is 'discouraged'. "
@@ -165,8 +165,7 @@ class ZScoreMapper(Mapper):
 
         params = self.__params_dict
         if params is None:
-            raise RuntimeError, \
-                  "ZScoreMapper needs to be trained before call to forward"
+            raise RuntimeError("ZScoreMapper needs to be trained before call to forward")
 
         if self._secret_inplace_zscore:
             mds = ds
@@ -210,8 +209,7 @@ class ZScoreMapper(Mapper):
 
         params = self.__params_dict
         if params is None:
-            raise RuntimeError, \
-                  "ZScoreMapper needs to be trained before call to forward"
+            raise RuntimeError("ZScoreMapper needs to be trained before call to forward")
 
         # mappers should not modify the input data
         # cast the data to float, since in-place operations below to not upcast!

@@ -83,7 +83,7 @@ def _eval_attr_expr(expr, col):
     #read from the front
     rev_expr = expr[::-1]
     # current filter -- take all
-    actfilter = np.ones(len(col[col.keys()[0]]), dtype='bool')
+    actfilter = np.ones(len(col[list(col.keys())[0]]), dtype='bool')
     joiner = None
     while len(rev_expr):
         ex = rev_expr.pop()
@@ -94,13 +94,13 @@ def _eval_attr_expr(expr, col):
                 attr = col[attr].value
             except KeyError:
                 raise ValueError("unknown attribute '%s' in expression [%s]. Valid attributes: %s"
-                                 % (attr, ' '.join(expr), col.keys())) 
+                                 % (attr, ' '.join(expr), list(col.keys()))) 
             op = rev_expr.pop()
             try:
                 op = attr_operators[op]
             except KeyError:
                 raise ValueError("unknown operator '%s' in expression [%s]. Valid operators: %s"
-                                 % (op, ' '.join(expr), attr_operators.keys())) 
+                                 % (op, ' '.join(expr), list(attr_operators.keys()))) 
             val = rev_expr.pop()
             # convert value into attr dtype
             try:

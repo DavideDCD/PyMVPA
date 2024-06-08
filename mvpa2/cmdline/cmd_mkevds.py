@@ -139,8 +139,8 @@ def run(args):
     elif args.csv_events is not None:
         if args.csv_events == '-':
             csv = sys.stdin.read()
-            import cStringIO
-            csv = cStringIO.StringIO(csv)
+            import io
+            csv = io.StringIO(csv)
         else:
             csv = open(args.csv_events, 'rU')
         csvt = _load_csv_table(csv)
@@ -148,10 +148,10 @@ def run(args):
             raise ValueError("no CSV columns found")
         if args.onset_column:
             csvt['onset'] = csvt[args.onset_column]
-        nevents = len(csvt[csvt.keys()[0]])
+        nevents = len(csvt[list(csvt.keys())[0]])
         events = []
-        for ev in xrange(nevents):
-            events.append(dict([(k, v[ev]) for k, v in csvt.iteritems()]))
+        for ev in range(nevents):
+            events.append(dict([(k, v[ev]) for k, v in csvt.items()]))
     elif args.onsets is not None:
         if not len(args.onsets):
             args.onsets = [i for i in sys.stdin]

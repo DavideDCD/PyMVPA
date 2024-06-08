@@ -32,8 +32,7 @@ if exists('rpy2', raise_=True):
         def Rrx2(self, x):
             return self.r[x][0]
     else:
-        raise ValueError, \
-              "We do not have support for rpy2 version %(rpy2)s" % versions
+        raise ValueError("We do not have support for rpy2 version %(rpy2)s" % versions)
 
     Rrx.__doc__ = "Access delegator for R function ["
     Rrx2.__doc__ = "Access delegator for R function [["

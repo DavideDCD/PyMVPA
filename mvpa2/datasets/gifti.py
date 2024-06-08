@@ -30,8 +30,10 @@ from mvpa2.base import externals
 
 externals.exists('nibabel', raise_=True)
 
+import nibabel as nib
 from nibabel.gifti import gifti
-from nibabel import loadsave
+
+# from nibabel.gifti import gifti, giftiio
 
 from mvpa2.base.collections import FeatureAttributesCollection, \
     SampleAttributesCollection
@@ -74,9 +76,10 @@ def _gifti_intent_is_node_indices(intent_string):
 
 
 def _get_gifti_image(samples):
-    if isinstance(samples, basestring):
-        samples = loadsave.save(samples)
-
+    if isinstance(samples, str):
+        # samples = giftiio.read(samples)
+        samples = nib.load(samples)
+        samples = samples.darrays
     required_class = gifti.GiftiImage
     if not isinstance(samples, required_class):
         raise TypeError('Input of type %s must be a %s' %
@@ -179,7 +182,7 @@ def map2gifti(ds, filename=None, encoding='GIFTI_ENCODING_B64GZ',
 
         attr_collection = ds.__dict__.get(attr_name)
 
-        if isinstance(keys_, basestring):
+        if isinstance(keys_, str):
             keys_ = (keys_,)
 
         for key in keys_:
@@ -224,8 +227,8 @@ def map2gifti(ds, filename=None, encoding='GIFTI_ENCODING_B64GZ',
     image = gifti.GiftiImage(darrays=darrays)
 
     if filename is not None:
-        loadsave.save(image, filename)
-
+        # giftiio.write(image, filename)
+        nib.save(image, filename)
     return image
 
 

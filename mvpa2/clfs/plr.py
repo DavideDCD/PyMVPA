@@ -71,9 +71,8 @@ class PLR(Classifier):
         X = data.samples.T
         d = self._attrmap.to_numeric(data.sa[self.get_space()].value)
         if set(d) != set([0, 1]):
-            raise ValueError, \
-                  "Regressors for logistic regression should be [0,1]. Got %s" \
-                  %(set(d),)
+            raise ValueError("Regressors for logistic regression should be [0,1]. Got %s" \
+                  %(set(d),))
 
         if self.__reduced != 0 :
             # Data have reduced rank
@@ -120,9 +119,8 @@ class PLR(Classifier):
             w += dw
             k += 1
             if k > self.__maxiter:
-                raise ConvergenceError, \
-                      "More than %d Iterations without convergence" % \
-                      (self.__maxiter)
+                raise ConvergenceError("More than %d Iterations without convergence" % \
+                      (self.__maxiter))
 
         if __debug__:
             debug("PLR", \
@@ -195,7 +193,7 @@ class PLRWeights(Sensitivity):
             # labels (values of the corresponding space) which were used
             # for mapping Here we rely on the fact that they are sorted
             # originally (just an arange())
-            labels_num = attrmap.values()
+            labels_num = list(attrmap.values())
             labels = attrmap.to_literal(asobjarray([tuple(sorted(labels_num))]),
                                         recurse=True)
         else:

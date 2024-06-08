@@ -59,7 +59,7 @@ class HelpAction(argparse.Action):
             usage_length = len(usagestr)
             usagestr = re.subn(r'\s+', ' ', usagestr.replace('\n', ' '))[0]
             helpstr = '%s\n%s' % (usagestr, helpstr[usage_length:])
-        print helpstr
+        print(helpstr)
         sys.exit(0)
 
 
@@ -201,17 +201,17 @@ def arg2learner(arg, index=0):
 
 def script2obj(filepath):
     locals = {}
-    execfile(filepath, locals, locals)
+    exec(compile(open(filepath, "rb").read(), filepath, 'exec'), locals, locals)
     if not len(locals):
         raise argparse.ArgumentTypeError(
             "executing script '%s' did not create at least one object" % filepath)
     elif len(locals) > 1 and not ('obj' in locals or 'fx' in locals):
         raise argparse.ArgumentTypeError(
             "executing script '%s' " % filepath
-            + "did create multiple objects %s " % locals.keys()
+            + "did create multiple objects %s " % list(locals.keys())
             + "but none is named 'obj' or 'fx'")
     if len(locals) == 1:
-        return locals.values()[0]
+        return list(locals.values())[0]
     else:
         if 'obj' in locals:
             return locals['obj']
@@ -384,7 +384,7 @@ def parser_add_optgroup_from_def(parser, defn, exclusive=False, prefix=None):
     for opt in defn[1]:
         namespec = opt[0]
         param = None
-        if len(namespec) == 2 and not isinstance(namespec[0], basestring) \
+        if len(namespec) == 2 and not isinstance(namespec[0], str) \
           and issubclass(namespec[0], ClassWithCollections):
             # parameter spec -> use its name
             param = namespec[0]._collections_template['params'][namespec[1]]
@@ -446,7 +446,7 @@ def process_common_dsattr_opts(ds, args):
                 attr = loader(spec[1:])
                 try:
                     dst_collection[attr_name] = attr
-                except ValueError, e:
+                except ValueError as e:
                     # try making the exception more readable
                     e_str = str(e)
                     if e_str.startswith('Collectable'):
@@ -500,13 +500,13 @@ def _load_csv_table(f):
         dialect = sniffer.sniff('\n'.join(sample))
     f.seek(0)
     reader = csv.DictReader(f, dialect=dialect)
-    table = dict(zip(reader.fieldnames,
-                       [list() for i in xrange(len(reader.fieldnames))]))
+    table = dict(list(zip(reader.fieldnames,
+                       [list() for i in range(len(reader.fieldnames))])))
     for row in reader:
-        for k, v in row.iteritems():
+        for k, v in row.items():
             table[k].append(v)
     del_me = []
-    for k, v in table.iteritems():
+    for k, v in table.items():
         if not len(k) and len(v) and v[0] is None:
             # this is an artifact of a trailing delimiter
             del_me.append(k)

@@ -87,7 +87,7 @@ class Dataset(AttrDataset):
 
         Parameters
         ----------
-        sadict, fadict : dict, optional
+        sa, fa : dict, optional
           Dictionaries describing selection for samples/features
           correspondingly.
         strict : bool, optional
@@ -282,7 +282,7 @@ class Dataset(AttrDataset):
             # We cannot count on the order the values in the dict will show up
             # with `self._data.value()` and since idhash will be order-dependent
             # we have to make it deterministic
-            keys = col.keys()
+            keys = list(col.keys())
             keys.sort()
             for k in keys:
                 res += ' %s@%s' % (k, idhash_(col[k].value))
@@ -462,7 +462,7 @@ class HollowSamples(object):
     offers acces to the sample and feature IDs via its ``sid`` and ``fid``
     members.
     """
-    def __init__(self, shape=None, sid=None, fid=None, dtype=np.float64):
+    def __init__(self, shape=None, sid=None, fid=None, dtype=np.float32):
         """
         Parameters
         ----------

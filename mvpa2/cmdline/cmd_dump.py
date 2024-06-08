@@ -129,7 +129,7 @@ def run(args):
                 dumpy = col[attr].value
             except KeyError:
                 raise ValueError("unknown attribute '%s', known are %s)"
-                                 % (attr, col.keys()))
+                                 % (attr, list(col.keys())))
     else:
         raise ValueError('no dataset component chosen')
     # How?
@@ -153,7 +153,7 @@ def run(args):
             # it could be something 1d that we can try to print
             if hasattr(dumpy, 'shape') and len(dumpy.shape) == 1:
                 for v in dumpy:
-                    print v
+                    print(v)
             else:
                 warning("conversion to plain text is not supported for "
                         "this data type")

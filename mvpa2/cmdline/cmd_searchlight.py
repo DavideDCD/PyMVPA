@@ -172,7 +172,7 @@ def run(args):
     aggregate_fx = args.aggregate_fx
     if args.roi_attr is not None:
         # first figure out which roi features should be processed
-        if len(args.roi_attr) == 1 and args.roi_attr[0] in ds.fa.keys():
+        if len(args.roi_attr) == 1 and args.roi_attr[0] in list(ds.fa.keys()):
             # name of an attribute -> pull non-zeroes
             rids = ds.fa[args.roi_attr[0]].value.nonzero()[0]
         else:

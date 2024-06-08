@@ -53,13 +53,13 @@ class OptionGroups(object):
         try:
             doc, l = self._d[name]
         except KeyError:
-            raise ValueError, "No group with name %s" % name
+            raise ValueError("No group with name %s" % name)
         opts = OptionGroup(self._parser, doc)
         try:
             opts.add_options(l)
         except OptionConflictError:
-            print "Problem addition options to the group '%s'. Most probably" \
-                  " the option was independently added already." % name
+            print("Problem addition options to the group '%s'. Most probably" \
+                  " the option was independently added already." % name)
             raise
         return opts
 
@@ -174,15 +174,15 @@ if __debug__:
         """Callback for -d|--debug cmdline option
         """
         if value == "list":
-            print "Registered debug IDs:"
-            keys = debug.registered.keys()
+            print("Registered debug IDs:")
+            keys = list(debug.registered.keys())
             keys.sort()
             for k in keys:
-                print "%-7s: %s" % (k, debug.registered[k])
-            print "Use ALL: to enable all of the debug IDs listed above."
-            print "Use python regular expressions to select group. CLF.* will" \
-              " enable all debug entries starting with CLF (e.g. CLFBIN, CLFMC)"
-            raise SystemExit, 0
+                print("%-7s: %s" % (k, debug.registered[k]))
+            print("Use ALL: to enable all of the debug IDs listed above.")
+            print("Use python regular expressions to select group. CLF.* will" \
+              " enable all debug entries starting with CLF (e.g. CLFBIN, CLFMC)")
+            raise SystemExit(0)
 
         optstr = optstr                     # pylint shut up
         debug.set_active_from_string(value)
@@ -338,8 +338,8 @@ if externals.exists('pywt'):
         wl_list_str = ", ".join(
                 ['-1: None'] + ['%d:%s' % w for w in enumerate(wl_list)])
         if value == "list":
-            print "Available wavelet families: " + wl_list_str
-            raise SystemExit, 0
+            print("Available wavelet families: " + wl_list_str)
+            raise SystemExit(0)
 
         wl_family = value
         try:
@@ -349,10 +349,10 @@ if externals.exists('pywt'):
                 try:
                     wl_family = wl_list[wl_family_index]
                 except IndexError:
-                    print "Index is out of range. " + \
+                    print("Index is out of range. " + \
                           "Following indexes with names are known: " + \
-                          wl_list_str
-                    raise SystemExit, -1
+                          wl_list_str)
+                    raise SystemExit(-1)
             else:
                 wl_family = 'None'
         except ValueError:
@@ -362,8 +362,8 @@ if externals.exists('pywt'):
         if wl_family == 'none':
             wl_family = None
         elif not wl_family in wl_list:
-            print "Uknown family '%s'. Known are %s" % (wl_family, ', '.join(wl_list))
-            raise SystemExit, -1
+            print("Uknown family '%s'. Known are %s" % (wl_family, ', '.join(wl_list)))
+            raise SystemExit(-1)
         # Store it in the parser
         setattr(parser.values, option.dest, wl_family)
 

@@ -46,7 +46,7 @@ class Repeater(Node):
     def generate(self, ds):
         """Generate the desired number of repetitions."""
         space = self.get_space()
-        for i in xrange(self.count):
+        for i in range(self.count):
             out = ds.copy(deep=False)
             out.a[space] = i
             yield out
@@ -162,7 +162,7 @@ class Sifter(Node):
             # XXX sorted/reverse here is just to guarantee that
             #     "uvalues" goes before "balanced".  If we get more
             #     cases -- put proper order here
-            for crit_k in sorted(crit.keys(), reverse=True):
+            for crit_k in sorted(list(crit.keys()), reverse=True):
                 crit_v = crit[crit_k]
                 if crit_k.lower() == 'uvalues':
                     # Check if all of those values are present
@@ -197,7 +197,7 @@ class Sifter(Node):
                         counts[v] += 1
 
                     # bool() to guarantee booleans
-                    same_counts = bool(len(np.unique(counts.values())) == 1)
+                    same_counts = bool(len(np.unique(list(counts.values()))) == 1)
                     crit_v = bool(crit_v)
 
                     if crit_v != same_counts:

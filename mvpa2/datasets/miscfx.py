@@ -102,12 +102,11 @@ def coarsen_chunks(source, nchunks=4):
     nchunks_orig = len(chunks_unique)
 
     if nchunks_orig < nchunks:
-        raise ValueError, \
-              "Original number of chunks is %d. Cannot coarse them " \
-              "to get %d chunks" % (nchunks_orig, nchunks)
+        raise ValueError("Original number of chunks is %d. Cannot coarse them " \
+              "to get %d chunks" % (nchunks_orig, nchunks))
 
     # figure out number of samples per each chunk
-    counts = dict(zip(chunks_unique, [ 0 ] * len(chunks_unique)))
+    counts = dict(list(zip(chunks_unique, [ 0 ] * len(chunks_unique))))
     for c in chunks:
         counts[c] += 1
 
@@ -115,7 +114,7 @@ def coarsen_chunks(source, nchunks=4):
     # of samples per chunk. No sophistication is done -- just
     # consecutively group to get close to desired number of samples
     # per chunk
-    avg_chunk_size = np.sum(counts.values())*1.0/nchunks
+    avg_chunk_size = np.sum(list(counts.values()))*1.0/nchunks
     chunks_groups = []
     cur_chunk = []
     nchunks = 0
@@ -260,7 +259,7 @@ def get_samples_by_attr(dataset, attr, values, sort=True):
     """
 
     if not is_sequence_type(values) \
-           or isinstance(values, basestring):
+           or isinstance(values, str):
         values = [ values ]
 
     # TODO: compare to plain for loop through the targets
@@ -339,7 +338,7 @@ def summary(dataset, stats=True, lstats='auto', sstats='auto', idhash=False,
             s += dataset.summary_targets(
                 targets_attr=targets_attr, chunks_attr=chunks_attr,
                 maxc=maxc, maxt=maxt)
-        except KeyError, e:
+        except KeyError as e:
             s += 'No per %s/%s due to %r' % (targets_attr, chunks_attr, e)
 
     if sstats and targets_attr is not None:
@@ -402,8 +401,8 @@ def summary_targets(dataset, targets_attr='targets', chunks_attr='chunks',
         table = [ entries ]
         for i, l in enumerate(u):
             d = {'  ' + name1 : l}
-            d.update(dict([ (k, stats[k][i]) for k in stats.keys()]))
-            table.append( [ ('%.3g', '%s')[isinstance(d[e], basestring)
+            d.update(dict([ (k, stats[k][i]) for k in list(stats.keys())]))
+            table.append( [ ('%.3g', '%s')[isinstance(d[e], str)
                                            or d[e] is None]
                             % d[e] for e in entries] )
         return '\nSummary for %s across %s\n' % (name1, name2) \
@@ -480,7 +479,7 @@ class SequenceStats(dict):
         res = dict(utargets=utargets)
         # Estimate counter-balance
         cbcounts = np.zeros((order, ntargets, ntargets), dtype=int)
-        for cb in xrange(order):
+        for cb in range(order):
             for i, j in zip(seqm[:-(cb+1)], seqm[cb+1:]):
                 cbcounts[cb, i, j] += 1
         res['cbcounts'] = cbcounts
@@ -492,7 +491,7 @@ class SequenceStats(dict):
         # Autocorrelation
         corr = []
         # for all possible shifts:
-        for shift in xrange(1, nsamples):
+        for shift in range(1, nsamples):
             shifted = seqm[shift:] + seqm[:shift]
             # ??? User pearsonsr with p may be?
             corr += [np.corrcoef(seqm, shifted)[0, 1]]
@@ -503,13 +502,13 @@ class SequenceStats(dict):
 
         # Assign textual summary
         # XXX move into a helper function and do on demand
-        t = [ [""] * (1 + self.order*(ntargets+1)) for i in xrange(ntargets+1) ]
+        t = [ [""] * (1 + self.order*(ntargets+1)) for i in range(ntargets+1) ]
         t[0][0] = "Targets/Order"
         for i, l  in enumerate(utargets):
             t[i+1][0] = '%s:' % l
-        for cb in xrange(order):
+        for cb in range(order):
             t[0][1+cb*(ntargets+1)] = "O%d" % (cb+1)
-            for i  in xrange(ntargets+1):
+            for i  in range(ntargets+1):
                 t[i][(cb+1)*(ntargets+1)] = " | "
             m = cbcounts[cb]
             # ??? there should be better way to get indexes
@@ -537,39 +536,3 @@ class SequenceStats(dict):
         pl.xlabel('Offset')
         pl.ylabel('Correlation Coefficient')
         pl.show()
-
-
-@datasetmethod
-def to_df(ds, sas=None, fas=None):
-    """Return pandas DataFrame corresponding to the dataset
-
-    Parameters
-    ----------
-    sas: list, optional
-      List of sample-attribute names to be used/returned to define rows index.
-    fas: list, optional
-      List of feature-attribute names to be used/returned to define rows index.
-
-    """
-    import pandas as pd
-
-    def col_to_index(col, col_abbrev, names):
-        """Collection to Pandas's index conversion
-
-        """
-        attrs = sorted(col.keys()) if names is None else names
-        if not attrs:
-            return None
-        return pd.MultiIndex.from_tuples(
-            # force convert to str for now since needs to be hashable
-            zip(*[map(str, col[a].value) for a in attrs]),
-            names=['%s.%s' % (col_abbrev, fa) for fa in attrs]
-        )
-
-    df = pd.DataFrame(
-        np.asanyarray(ds.samples),
-        columns=col_to_index(ds.fa, 'fa', names=fas)
-    )
-    # Ideally here should be leveled if chunks/targets present
-    df = df.set_index(col_to_index(ds.sa, 'sa', names=sas))
-    return df

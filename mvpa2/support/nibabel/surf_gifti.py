@@ -12,8 +12,9 @@ GIFTI surface functions (wrapper) using nibabel.gifti
 from mvpa2.base import externals
 
 if externals.exists("nibabel", raise_=True):
+    # from nibabel.gifti import gifti, giftiio
+    import nibabel as nib
     from nibabel.gifti import gifti
-    from nibabel import loadsave
 
 import numpy as np, os, re
 
@@ -23,7 +24,7 @@ import io
 
 
 def _get_single_array(g, intent):
-        ar = g.get_arrays_from_intent(intent)
+        ar = g.getArraysFromIntent(intent)
         n = len(ar)
         if n != 1:
             len_str = 'no' if n == 0 else '%d' % n
@@ -49,8 +50,9 @@ def read(fn):
     Any meta-information stored in the GIFTI file is not present in surf_.
     '''
 
-    g = loadsave.load(fn)
-
+    # g = giftiio.read(fn)
+    g = nib.load(fn)
+    gs = g.darrays
     vertices = _get_single_array(g, 'NIFTI_INTENT_POINTSET').data
     faces = _get_single_array(g, 'NIFTI_INTENT_TRIANGLE').data
 
@@ -94,12 +96,12 @@ def filename2vertices_faces_metadata(fn):
                                 flat='Flat'))
 
     def just_one(dict_, fn=fn):
-        vs = [v for k, v in dict_.iteritems() if k in fn]
+        vs = [v for k, v in dict_.items() if k in fn]
         return vs[0] if len(vs) == 1 else None
 
     v_meta = [gifti.GiftiNVPairs('Name', fn)]
 
-    for key, dict_ in vertex_map.iteritems():
+    for key, dict_ in vertex_map.items():
         v = just_one(dict_)
         if v is not None:
             v_meta.append(gifti.GiftiNVPairs(key, v))

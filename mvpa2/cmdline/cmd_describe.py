@@ -78,17 +78,17 @@ def _describe_attr(attr, style):
         return 'IMPLEMENT ME\n'
 
 def txt_content_summary_terse(ds, args):
-    print ds.summary(targets_attr=args.target_attr)
+    print(ds.summary(targets_attr=args.target_attr))
     info = '\n\nDetails on dataset attributes:\n'
     for cdesc, col, describer in \
             (('sample', ds.sa, _describe_array_attr),
              ('feature', ds.fa, _describe_array_attr),
              ('dataset', ds.a, _describe_attr)):
         info += ' %s attributes:\n' % cdesc
-        for attr in sorted(col.values(),
+        for attr in sorted(list(col.values()),
                            cmp=lambda x, y: cmp(x.name, y.name)):
             info += '  %s\n' % describer(attr, 'terse')
-    print info
+    print(info)
 
 def sample_histogram(ds, args):
     import pylab as pl
@@ -148,7 +148,7 @@ ds_descr_grp = ('options for dataset description', [
 def setup_parser(parser):
     parser_add_common_opt(parser, 'multidata', required=True)
     parser.add_argument('-r', '--report',
-            **dict(type=str, choices=info_fx.keys(),
+            **dict(type=str, choices=list(info_fx.keys()),
                  default='txtsummary',
                  help="""choose a type of report. Default: terse summary in
                  text format."""))
