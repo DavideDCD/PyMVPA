@@ -156,7 +156,7 @@ def _assert_ds_mat_attributes_equal(ds, m, attr_keys=('a', 'sa', 'fa')):
     for attr_k in attr_keys:
         attr_v = getattr(ds, attr_k)
 
-        for k in attr_v.keys():
+        for k in list(attr_v.keys()):
             v = attr_v[k].value
             assert_array_equal(m[attr_k][k][0, 0].ravel(), v)
 
@@ -186,7 +186,7 @@ def _assert_array_collectable_less_or_equal(x, y):
     # test for the keys in x to be a subset of those in y,
     # and the values corresponding to k in x being equal to those in y
     assert_true(set(x.keys()).issubset(set(y.keys())))
-    for k in x.keys():
+    for k in list(x.keys()):
         assert_array_equal(x[k].value, y[k].value)
 
 
@@ -230,9 +230,9 @@ def test_cosmo_dataset(fn):
         # ensure dataset has expected vlaues
         assert_array_equal(ds.samples, mat['samples'])
 
-        _assert_set_equal(ds.sa.keys(), ['chunks', 'labels', 'targets'])
-        _assert_set_equal(ds.sa.keys(), ['chunks', 'labels', 'targets'])
-        _assert_set_equal(ds.a.keys(), ['name', 'size'])
+        _assert_set_equal(list(ds.sa.keys()), ['chunks', 'labels', 'targets'])
+        _assert_set_equal(list(ds.sa.keys()), ['chunks', 'labels', 'targets'])
+        _assert_set_equal(list(ds.a.keys()), ['name', 'size'])
 
         assert_array_equal(ds.a.name, 'input')
         assert_array_equal(ds.a.size, [3, 2, 1])
@@ -286,7 +286,7 @@ def test_cosmo_searchlight():
     ds_count = sl(ds)
     dict_count = Dataset(samples=ds_count.samples,
                          fa=dict(k=arr([4, 3, 2, 1])),
-                         sa=dict((k, ds.sa[k].value) for k in ds.sa.keys()),
+                         sa=dict((k, ds.sa[k].value) for k in list(ds.sa.keys())),
                          a=dict(name=['output']))
 
     _assert_ds_less_or_equal(dict_count, ds_count)
@@ -370,11 +370,11 @@ def test_fmri_to_cosmo():
         samples=pathjoin(pymvpa_dataroot, 'example4d.nii.gz'),
         targets=[1, 2], sprefix='voxel')
     cosmomvpa_struct = cosmo.map2cosmo(pymvpa_ds)
-    _assert_set_equal(cosmomvpa_struct.keys(), ['a', 'fa', 'sa', 'samples'])
+    _assert_set_equal(list(cosmomvpa_struct.keys()), ['a', 'fa', 'sa', 'samples'])
 
     a_dict = dict(_obj2tup(cosmomvpa_struct['a']))
     mri_keys = ['imgaffine', 'voxel_eldim', 'voxel_dim']
-    _assert_subset(mri_keys, a_dict.keys())
+    _assert_subset(mri_keys, list(a_dict.keys()))
 
     for k in mri_keys:
         c_value = a_dict[k]
@@ -388,7 +388,7 @@ def test_fmri_to_cosmo():
 
     fa_dict = dict(_obj2tup(cosmomvpa_struct['fa']))
     fa_keys = ['voxel_indices']
-    _assert_set_equal(fa_dict.keys(), fa_keys)
+    _assert_set_equal(list(fa_dict.keys()), fa_keys)
     for k in fa_keys:
         assert_array_almost_equal(fa_dict[k].T, pymvpa_ds.fa[k].value)
 
@@ -409,8 +409,8 @@ def test_cosmo_do_not_store_unsupported_datatype():
 
     ds.a['unused'] = ArbitraryClass()
     c = cosmo.map2cosmo(ds)
-    assert_false('a' in c.keys())
+    assert_false('a' in list(c.keys()))
 
     ds.a['foo'] = np.zeros((1,))
     c = cosmo.map2cosmo(ds)
-    assert_true('a' in c.keys())
+    assert_true('a' in list(c.keys()))

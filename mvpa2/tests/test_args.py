@@ -26,7 +26,7 @@ class ArgsHelpersTest(unittest.TestCase):
         self.assertTrue(res[''] == {'a':1, 'c':3})
 
         res = split_kwargs(kwargs)
-        self.assertTrue(res.keys() == [''])
+        self.assertTrue(list(res.keys()) == [''])
         self.assertTrue(res[''] == kwargs)
 
 

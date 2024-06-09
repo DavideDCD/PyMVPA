@@ -52,7 +52,7 @@ class GPRTests(unittest.TestCase):
         sa = clf.get_sensitivity_analyzer() # should be regular weights
         sa_ms = clf.get_sensitivity_analyzer(flavor='model_select') # with model selection
         def prints():
-            print clf.ca.log_marginal_likelihood, clf.kernel.Sigma_p, clf.kernel.sigma_0
+            print(clf.ca.log_marginal_likelihood, clf.kernel.Sigma_p, clf.kernel.sigma_0)
 
         sa(dataset)
         lml = clf.ca.log_marginal_likelihood

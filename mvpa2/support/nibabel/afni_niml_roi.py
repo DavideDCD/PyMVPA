@@ -38,7 +38,7 @@ def read(fn):
         lines = f.read().split('\n')
 
     # some headers should be converted 
-    color2array = lambda x:np.asarray(map(float, x.split()))
+    color2array = lambda x:np.asarray(list(map(float, x.split())))
     header_convertors = dict(iLabel=int,
                              Type=int,
                              FillColor=color2array,
@@ -69,7 +69,7 @@ def read(fn):
             else:
                 raise ValueError("Illegal line: %s" % line)
         else:
-            v = np.asarray(map(int, line.split()), dtype=np.int).ravel()
+            v = np.asarray(list(map(int, line.split())), dtype=np.int).ravel()
 
             tp = v[1]
             n = v[2]
@@ -156,7 +156,7 @@ def from_any(roi, postproc=None):
     if type(roi) is list:
         if not all(['Label' in r for r in roi]):
             raise ValueError("Not understood: list %r" % roi)
-    elif isinstance(roi, basestring):
+    elif isinstance(roi, str):
         roi = read(roi)
 
     if postproc is not None:

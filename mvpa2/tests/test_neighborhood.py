@@ -252,7 +252,7 @@ def test_cached_query_engine():
         q.train(ds)
         # sequential train on the same should be ok in both cases
         q.train(ds)
-        res_ind = [q[fid] for fid in xrange(ds.nfeatures)]
+        res_ind = [q[fid] for fid in range(ds.nfeatures)]
         res_kw = [q(myspace=x) for x in ds.fa.myspace]
         # test if results match
         cmp_res(res_ind, res_kw)
@@ -270,7 +270,7 @@ def test_cached_query_engine():
     qec.untrain()
     qec.train(ds2)
     # should be the same results on the copy
-    cmp_res(results_ind[0], [qec[fid] for fid in xrange(ds.nfeatures)])
+    cmp_res(results_ind[0], [qec[fid] for fid in range(ds.nfeatures)])
     cmp_res(results_kw[0], [qec(myspace=x) for x in ds.fa.myspace])
     ok_(qec.train(ds2) is None)
     # unfortunately we are not catching those
@@ -280,7 +280,7 @@ def test_cached_query_engine():
 def test_scattered_neighborhoods():
     radius = 1
     sphere = ne.Sphere(radius)
-    coords = range(50)
+    coords = list(range(50))
 
     scoords, sidx = ne.scatter_neighborhoods(sphere, coords,
                                              deterministic=False)
@@ -294,7 +294,7 @@ def test_scattered_neighborhoods():
 
     # now the same for the case where a particular coordinate appears multiple
     # times
-    coords = range(10) + range(10)
+    coords = list(range(10)) + list(range(10))
     scoords, sidx = ne.scatter_neighborhoods(sphere, coords,
                                              deterministic=False)
     sidx = sorted(sidx)

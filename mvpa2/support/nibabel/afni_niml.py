@@ -66,7 +66,7 @@ def support_lists(f):
     def apply_f(x):
         if isinstance(x, (list, tuple)):
             # support nested lists/tuples
-            return map(apply_f, x)
+            return list(map(apply_f, x))
         else:
             return f(x)
 
@@ -76,7 +76,7 @@ def support_lists(f):
 @support_lists
 def decode_escape(s):
     '''Undoes NIML-specific escape characters'''
-    for k, v in _ESCAPE.iteritems():
+    for k, v in _ESCAPE.items():
         s = s.replace(k, v)
     return s
 
@@ -84,7 +84,7 @@ def decode_escape(s):
 @support_lists
 def encode_escape(s):
     '''Applies NIML-specific escape characters'''
-    for k, v in _ESCAPE.iteritems():
+    for k, v in _ESCAPE.items():
         s = s.replace(v, k)
     return s
 
@@ -110,14 +110,14 @@ def _mixedtypes_datastring2rawniml(s, niml):
     if len(lines) != nrows:
         raise ValueError("Expected %d rows, but found %d" % (nrows, len(lines)))
 
-    elems = map(lambda x: x.strip().split(_TEXT_COLSEP), lines)
-    fs = map(types.code2python_convertor, tps)
+    elems = [x.strip().split(_TEXT_COLSEP) for x in lines]
+    fs = list(map(types.code2python_convertor, tps))
 
     data = []
-    for col in xrange(ncols):
+    for col in range(ncols):
         f = fs[col]
         if types.sametype(tps[col], 'String'):
-            d = map(f, [elems[r][col] for r in xrange(nrows)])
+            d = list(map(f, [elems[r][col] for r in range(nrows)]))
         else:
             tp = types.code2numpy_type(tps[col])
             niform = niml.get('ni_form', None)
@@ -125,7 +125,7 @@ def _mixedtypes_datastring2rawniml(s, niml):
                 raise ValueError('Not supported: have ni_form with mixed types')
 
             d = np.zeros((nrows,), dtype=tp)  # allocate one-dimensional array
-            for r in xrange(nrows):
+            for r in range(nrows):
                 d[r] = f(elems[r][col])
 
         data.append(d)
@@ -191,7 +191,7 @@ def _datastring2rawniml(s, niml):
 
 def getnewidcode():
     '''Provides a new (random) id code for a NIML dataset'''
-    return ''.join(map(chr, [random.randint(65, 65 + 25) for _ in xrange(24)]))
+    return ''.join(map(chr, [random.randint(65, 65 + 25) for _ in range(24)]))
 
 
 def setnewidcode(s):
@@ -202,7 +202,7 @@ def setnewidcode(s):
             setnewidcode(v)
     elif tp is dict:
         key = 'self_idcode'
-        for k, v in s.iteritems():
+        for k, v in s.items():
             if k == key:
                 s[key] = getnewidcode()
             else:
@@ -241,7 +241,7 @@ def find_attribute_node(niml_dict, key, value, just_one=True):
     elif tp is dict:
         r = [niml_dict] if niml_dict.get(key, None) == value else []
         r.extend(find_attribute_node(niml_dict[k], key, value, False)
-                 for k, v in niml_dict.iteritems() if type(v) in (list, dict))
+                 for k, v in niml_dict.items() if type(v) in (list, dict))
 
     else:
         return []
@@ -313,14 +313,14 @@ def rawniml2string(p, form='text'):
         delim = ['<', '\n', '/>']
         values = [s_name, s_header]
 
-    delim_enc = map(lambda x: x.encode(), delim)
+    delim_enc = [x.encode() for x in delim]
 
     n_delim = len(delim_enc)
     assert (n_delim == len(values) + 1)
 
     # zip with unequal length
     elems = []
-    for i in xrange(n_delim):
+    for i in range(n_delim):
         elems.append(delim_enc[i])
         if i + 1 < n_delim:
             # one element less than the number of delimeters
@@ -331,7 +331,7 @@ def rawniml2string(p, form='text'):
 
 def _data2string(data, form):
     '''Converts a data element to binary, text or base64 representation'''
-    if isinstance(data, basestring):
+    if isinstance(data, str):
         return ('"%s"' % encode_escape(data)).encode()
 
     elif type(data) is np.ndarray:
@@ -339,8 +339,8 @@ def _data2string(data, form):
             f = types.numpy_data2printer(data)
             nrows, ncols = data.shape
             return _TEXT_ROWSEP.join([_TEXT_COLSEP.join([f(data[row, col])
-                                                         for col in xrange(ncols)])
-                                      for row in xrange(nrows)]).encode()
+                                                         for col in range(ncols)])
+                                      for row in range(nrows)]).encode()
         elif form == 'binary':
             data_reshaped = data.reshape((data.shape[1], data.shape[0]))
             r = data_reshaped.tostring()
@@ -371,8 +371,8 @@ def _data2string(data, form):
             fs = [types.numpy_data2printer(d[0] if type(d) is list else d) for d in data]
 
             return _TEXT_ROWSEP.join([_TEXT_COLSEP.join([fs[col](data[col][row])
-                                                         for col in xrange(ncols)])
-                                      for row in xrange(nrows)]).encode()
+                                                         for col in range(ncols)])
+                                      for row in range(nrows)]).encode()
 
     else:
         raise TypeError("Unknown type %r" % type(data))
@@ -395,7 +395,7 @@ def _header2string(p, keyfirst=None, keylast=None):
                 kvs.append((k, p[k]))
                 added.add(k)
 
-    rs = map(lambda x: '   %s="%s"' % x, kvs)
+    rs = ['   %s="%s"' % x for x in kvs]
     return ("\n".join(rs)).encode()
 
 
@@ -553,7 +553,7 @@ def string2rawniml(s, i=None):
                   (name, i + m.end()))
             niml = _parse_keyvalues(header)
 
-            debug('NIML', 'Found keys %s.', (", ".join(niml.keys())))
+            debug('NIML', 'Found keys %s.', (", ".join(list(niml.keys()))))
             # set the name of this element
             niml['name'] = name.decode()
 
@@ -563,7 +563,7 @@ def string2rawniml(s, i=None):
                 i, niml['nodes'] = string2rawniml(s, i)
                 debug("NIML", "<<< ending a group %s", niml['name'])
 
-            elif not 'ni_type' in niml.keys():
+            elif not 'ni_type' in list(niml.keys()):
                 warning('Empty NIML element %s found, skipping' % name)
                 debug('NIML', 'Empty element, skipping')
                 continue
@@ -670,7 +670,7 @@ def string2rawniml(s, i=None):
                                          (endstr, _partial_string(s, i)))
                     i += len(endstr)
 
-            debug('NIML', "Adding element '%s' with keys %r" % (niml['name'], niml.keys()))
+            debug('NIML', "Adding element '%s' with keys %r" % (niml['name'], list(niml.keys())))
             nimls.append(niml)
 
 

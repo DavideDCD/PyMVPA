@@ -147,14 +147,14 @@ def test_collections():
     assert_equal(len(sa), 0)
 
     assert_raises(ValueError, sa.__setitem__, 'test', 0)
-    l = range(5)
+    l = list(range(5))
     sa['test'] = l
     # auto-wrapped
     assert_true(isinstance(sa['test'], ArrayCollectable))
     assert_equal(len(sa), 1)
 
     # names which are already present in dict interface
-    assert_raises(ValueError, sa.__setitem__, 'values', range(5))
+    assert_raises(ValueError, sa.__setitem__, 'values', list(range(5)))
 
     sa_c = copy.deepcopy(sa)
     assert_equal(len(sa), len(sa_c))
@@ -172,10 +172,10 @@ class TestNodeOnDefault(Node):
 
 def test_conditional_attr():
     import copy
-    import cPickle
+    import pickle
     for node in (TestNodeOnDefault(enable_ca=['test', 'stats']),
                  TestNodeOffDefault(enable_ca=['test', 'stats'])):
-        node.ca.test = range(5)
+        node.ca.test = list(range(5))
         node.ca.stats = ConfusionMatrix(labels=['one', 'two'])
         node.ca.stats.add(('one', 'two', 'one', 'two'),
                     ('one', 'two', 'two', 'one'))
@@ -189,8 +189,8 @@ def test_conditional_attr():
         assert_array_equal(node.ca['stats'].value.matrix, dc_node.ca['stats'].value.matrix)
 
         # check whether values survive pickling
-        pickled = cPickle.dumps(node)
-        up_node = cPickle.loads(pickled)
-        assert_array_equal(up_node.ca['test'].value, range(5))
+        pickled = pickle.dumps(node)
+        up_node = pickle.loads(pickled)
+        assert_array_equal(up_node.ca['test'].value, list(range(5)))
         assert_array_equal(up_node.ca['stats'].value.matrix, node.ca['stats'].value.matrix)
 

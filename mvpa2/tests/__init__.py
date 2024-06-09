@@ -40,7 +40,7 @@ def setup_module(module, verbosity=None):
     # provide people with a hint about the warnings that might show up in a
     # second
     if verbosity:
-        print("T: MVPA_SEED=%s" % _random_seed)
+        print(("T: MVPA_SEED=%s" % _random_seed))
         if verbosity > 1:
             print('T: Testing for availability of external software packages.')
 
@@ -149,8 +149,8 @@ def collect_unit_tests(verbosity=1):
         if externals.exists(external):
             optional_tests.append('test_%s' % testname)
         elif verbosity:
-            print('T: Tests from "test_%s" are skipped due to missing externals: %s'
-                  % (testname, external))
+            print(('T: Tests from "test_%s" are skipped due to missing externals: %s'
+                  % (testname, external)))
 
     # finally merge all of them
     tests += optional_tests
@@ -305,8 +305,8 @@ def run_tests_using_nose(limit=None, verbosity=1, exit_=False):
             not_tested = set([os.path.basename(f) for f in testfiles]) \
                          - set(['%s.py' % f for f in tests])
             if len(not_tested):
-                print("T: Warning -- following test files were found but will "
-                      "not be tested: %s" % ', '.join(not_tested))
+                print(("T: Warning -- following test files were found but will "
+                      "not be tested: %s" % ', '.join(not_tested)))
         config.testNames = ['mvpa2.tests.' + nt for nt in tests]
     else:
         config.testNames = ['mvpa2.tests.' + nt for nt in tests
@@ -353,7 +353,7 @@ def run(limit=None, verbosity=None, exit_=False):
 
             if limit is None:
                 # make global test suite (use them all)
-                ts = unittest.TestSuite(suites.values())
+                ts = unittest.TestSuite(list(suites.values()))
             else:
                 ts = unittest.TestSuite([suites[s] for s in limit])
 
@@ -365,7 +365,7 @@ def run(limit=None, verbosity=None, exit_=False):
                     """Run the bloody test and puke the seed value if failed"""
                     result = super(TextTestRunnerPyMVPA, self).run(test)
                     if not result.wasSuccessful():
-                        print "MVPA_SEED=%s" % _random_seed
+                        print("MVPA_SEED=%s" % _random_seed)
 
             # finally run it
             TextTestRunnerPyMVPA(verbosity=verbosity).run(ts)

@@ -110,7 +110,7 @@ def test_ttest_1samp_masked():
     ##assert_raises(AssertionError, ttest_1samp_masked, d[None,...], 0)
 
     # basic test different alternatives
-    d = range(10)
+    d = list(range(10))
     tl, pl = ttest_1samp_masked(d, 0, alternative='greater')
 
     tr, pr = ttest_1samp_masked(d, 0, alternative='less')

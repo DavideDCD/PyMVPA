@@ -47,8 +47,8 @@ class SurfaceSpec(object):
 
         for s in self.surfaces:
             for src, trg in repls:
-                keys = s.keys()
-                for i in xrange(len(keys)):
+                keys = list(s.keys())
+                for i in range(len(keys)):
                     key = keys[i]
                     if key.lower() == src:
                         v = s.pop(key)
@@ -77,7 +77,7 @@ class SurfaceSpec(object):
         lines.append('')
         for surface in self.surfaces:
             lines.append('NewSurface')
-            lines.extend('    %s = %s' % kv for kv in surface.iteritems())
+            lines.extend('    %s = %s' % kv for kv in surface.items())
             lines.append('')
 
         return "\n".join(lines)
@@ -120,7 +120,7 @@ class SurfaceSpec(object):
         '''
 
         if not overwrite and os.path.exists(fnout):
-            print '%s already exists - not overwriting' % fnout
+            print('%s already exists - not overwriting' % fnout)
         with open(fnout, 'w') as f:
             f.write(self.as_string())
 
@@ -177,7 +177,7 @@ class SurfaceSpec(object):
                 funcs = [lambda x: x.startswith(arg),
                          lambda x: arg in x]
                 for func in funcs:
-                    surfs_filter = filter(lambda x:func(x[field]), surfs)
+                    surfs_filter = [x for x in surfs if func(x[field])]
                     if not surfs_filter:
                         continue
                     elif len(surfs_filter) == 1:
@@ -212,7 +212,7 @@ def hemi_pairs_add_views(spec_both, state, ext, directory=None, overwrite=False)
         viewkeys = 'm'
 
     spec_both = [spec_left, spec_right]
-    spec_both_new = map(copy.deepcopy, spec_both)
+    spec_both_new = list(map(copy.deepcopy, spec_both))
 
     for view in viewkeys:
         longname = views[view]
@@ -258,9 +258,9 @@ def hemi_pairs_add_views(spec_both, state, ext, directory=None, overwrite=False)
             newfns.append(newfn)
 
         if all(map(os.path.exists, newfns)) and not overwrite:
-            print "Output already exist for %s" % longname
+            print("Output already exist for %s" % longname)
         else:
-            surf_left, surf_right = map(surf.read, oldfns)
+            surf_left, surf_right = list(map(surf.read, oldfns))
             surf_both_moved = surf.reposition_hemisphere_pairs(surf_left,
                                                                surf_right,
                                                                view)
@@ -279,7 +279,7 @@ def combine_left_right(leftright):
 
     mergeable = lambda x : ((x['Anatomical'] == 'Y') or
                              x['SurfaceState'].startswith(_COMPREFIX))
-    to_merge = map(mergeable, left.surfaces)
+    to_merge = list(map(mergeable, left.surfaces))
 
     s_left, s_right = left.surfaces, right.surfaces
 
@@ -287,7 +287,7 @@ def combine_left_right(leftright):
     states = [] # list of states
     surfaces = [] # surface specs
     for i, merge in enumerate(to_merge):
-        ll, rr = map(copy.deepcopy, [s_left[i], s_right[i]])
+        ll, rr = list(map(copy.deepcopy, [s_left[i], s_right[i]]))
 
         # for now assume they are in the same order for left and right
         if ll['SurfaceState'] != rr['SurfaceState']:
@@ -343,7 +343,7 @@ def merge_left_right(both):
                 for ii, surf_ in enumerate([left, right]):
                     newsurf = dict()
                     fns.append(surf_[_NAME])
-                    for k, v in surf_.iteritems():
+                    for k, v in surf_.items():
                         newsurf[k] = v.replace(lr_infixes[ii], m_infix)
 
                         # ensure that right hemi identical to left
@@ -458,7 +458,7 @@ def from_any(*args):
         a = args[0]
         if isinstance(a, SurfaceSpec):
             return a
-        if (isinstance(a, basestring)):
+        if (isinstance(a, str)):
             for ext in ['', '.spec']:
                 fn = a + ext
                 if os.path.isfile(fn):
@@ -471,7 +471,7 @@ def from_any(*args):
             icold = arg
         elif arg in ['l', 'r', 'b', 'm', 'lh', 'rh', 'bh', 'mh']:
             hemi = arg[0]
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, str):
             if os.path.isdir(arg):
                 directory = arg
             else:

@@ -111,7 +111,7 @@ class SurfaceQueryEngine(QueryEngineInterface):
     @property
     def ids(self):
         self._check_trained()
-        return self._vertex2feature_map.keys()
+        return list(self._vertex2feature_map.keys())
 
     def untrain(self):
         self._vertex2feature_map = None
@@ -131,7 +131,7 @@ class SurfaceQueryEngine(QueryEngineInterface):
         fa_key = self.fa_node_key
         nvertices = self.surface.nvertices
 
-        if fa_key not in ds.fa.keys():
+        if fa_key not in list(ds.fa.keys()):
             raise ValueError('Attribute .fa.%s not found.' % fa_key)
 
         vertex_ids = ds.fa[fa_key].value.ravel()
@@ -147,7 +147,7 @@ class SurfaceQueryEngine(QueryEngineInterface):
         # for different features, hence use a list.
         # initialize each vertex with an empty list
         self._vertex2feature_map = v2f = dict(
-            (vertex_id, list()) for vertex_id in xrange(nvertices))
+            (vertex_id, list()) for vertex_id in range(nvertices))
 
         for feature_id, vertex_id in enumerate(vertex_ids):
             v2f[vertex_id].append(feature_id)
@@ -232,7 +232,7 @@ class SurfaceRingQueryEngine(SurfaceQueryEngine):
     @property
     def ids(self):
         self._check_trained()
-        return self._vertex2feature_map.keys()
+        return list(self._vertex2feature_map.keys())
 
     def untrain(self):
         self._vertex2feature_map = None
@@ -346,7 +346,7 @@ class SurfaceVerticesQueryEngine(QueryEngineInterface):
 
     @property
     def ids(self):
-        return self.voxsel.keys()
+        return list(self.voxsel.keys())
 
     def train(self, dataset):
         '''Train the query engine on a dataset'''
@@ -468,15 +468,15 @@ class SurfaceVerticesQueryEngine(QueryEngineInterface):
 
     def linear_voxel_id2feature_id(self, linear_voxel_id):
         if type(linear_voxel_id) in (list, tuple):
-            return map(self.linear_voxel_id2feature_id, linear_voxel_id)
+            return list(map(self.linear_voxel_id2feature_id, linear_voxel_id))
 
         return self._map_voxel_coord[linear_voxel_id]
 
     def feature_id2linear_voxel_ids(self, feature_id):
         if type(feature_id) in (list, tuple):
-            return map(self.feature_id2linear_voxel_ids, feature_id)
+            return list(map(self.feature_id2linear_voxel_ids, feature_id))
 
-        return [i for i, j in self._map_voxel_coord.iteritems()
+        return [i for i, j in self._map_voxel_coord.items()
                                   if feature_id in j]
 
     def feature_id2nearest_vertex_id(self, feature_id,
@@ -502,7 +502,7 @@ class SurfaceVerticesQueryEngine(QueryEngineInterface):
         '''
 
         if type(feature_id) in (list, tuple):
-            return map(self.feature_id2nearest_vertex_id, feature_id)
+            return list(map(self.feature_id2nearest_vertex_id, feature_id))
 
         lin_voxs = self.feature_id2linear_voxel_ids(feature_id)
 
@@ -528,7 +528,7 @@ class SurfaceVerticesQueryEngine(QueryEngineInterface):
         at least one vertex_id..
         '''
         if type(vertex_id) in (list, tuple):
-            return map(self.vertex_id2nearest_feature_id, vertex_id)
+            return list(map(self.vertex_id2nearest_feature_id, vertex_id))
 
         lin_vox = self.voxsel.source2nearest_target(vertex_id)
 
@@ -607,7 +607,7 @@ class SurfaceVoxelsQueryEngine(SurfaceVerticesQueryEngine):
     def ids(self):
         if self._feature_id2vertex_id is None:
             raise ValueError("No feature id mapping. Did you train?")
-        return self._feature_id2vertex_id.keys()
+        return list(self._feature_id2vertex_id.keys())
 
     def query_byid(self, feature_id):
         '''Query the engine using a feature id'''
@@ -624,11 +624,11 @@ class SurfaceVoxelsQueryEngine(SurfaceVerticesQueryEngine):
         fallback = self.fallback_euclidean_distance
         if fallback:
             # can use any feature id in ds
-            feature_ids = range(ds.nfeatures)
+            feature_ids = list(range(ds.nfeatures))
         else:
             # see which feature ids were mapped to
             feature_ids = set()
-            for v in self._map_voxel_coord.itervalues():
+            for v in self._map_voxel_coord.values():
                 feature_ids.update(set(v))
 
         f = lambda x:self.feature_id2nearest_vertex_id(x, fallback)
@@ -785,7 +785,7 @@ def disc_surface_queryengine(radius, volume, white_surf, pial_surf,
 
     if not output_modality in modality2class:
         raise KeyError("Illegal modality %s: should be in %s" %
-                            (output_modality, modality2class.keys()))
+                            (output_modality, list(modality2class.keys())))
 
     voxsel = surf_voxel_selection.run_voxel_selection(
                                 radius=radius, volume=volume,

@@ -38,7 +38,7 @@ data = np.array([[ 0.22366105, 0.51562476, 0.62623543, 0.28081652, 0.56513533],
 
 
 def test_PDistConsistency():
-    targets = np.tile(xrange(3),2)
+    targets = np.tile(range(3),2)
     chunks = np.repeat(np.array((0,1)),3)
     # correct results
     cres1 = 0.41894348
@@ -77,7 +77,7 @@ def test_PDistConsistency():
 
 
 def test_CDist():
-    targets = np.tile(range(3), 2)
+    targets = np.tile(list(range(3)), 2)
     chunks = np.repeat(np.array((0,1)), 3)
     ds = dataset_wizard(samples=data, targets=targets, chunks=chunks)
     train_data = ds[ds.sa.chunks == 0, ]
@@ -124,7 +124,7 @@ def test_CDist_cval():
         # skip testing for now, since we are having issue with 'training_stats'
         raise SkipTest("Skipping test to avoid issue with 'training_stats while CA enabled")
     
-    targets = np.tile(range(3), 2)
+    targets = np.tile(list(range(3)), 2)
     chunks = np.repeat(np.array((0,1)), 3)
     ds = dataset_wizard(samples=data, targets=targets, chunks=chunks)
 
@@ -140,7 +140,7 @@ def test_CDist_cval():
 
 
 def test_PDist():
-    targets = np.tile(xrange(3),2)
+    targets = np.tile(range(3),2)
     chunks = np.repeat(np.array((0,1)),3)
     ds = dataset_wizard(samples=data, targets=targets, chunks=chunks)
     data_c = data - np.mean(data,0)
@@ -176,7 +176,7 @@ def test_PDist():
 
 def test_PDistTargetSimilarity():
     ds = Dataset(data)
-    tdsm = range(15)
+    tdsm = list(range(15))
     ans1 = np.array([0.30956920104253222, 0.26152022709856804])
     ans2 = np.array([0.53882710751962437, 0.038217527859375197])
     ans3 = np.array([0.33571428571428574, 0.22121153763932569])
@@ -265,7 +265,7 @@ def test_Regression():
     assert_raises(ValueError, regr, ds[:-1])
 
     # what if we select some items?
-    keep_pairss = [range(3), [1], np.arange(3)]
+    keep_pairss = [list(range(3)), [1], np.arange(3)]
     for reg_type in reg_types:
         for keep_pairs in keep_pairss:
             regr = Regression(perfect_pred, keep_pairs=keep_pairs, alpha=0,

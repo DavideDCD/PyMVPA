@@ -109,8 +109,8 @@ def make_flobs(pre=0, rise=5, fall=5, undershoot=5, undershootamp=0.3,
                    + ' --res=' + str(resolution) )
     err = childerror.readlines()
     if len(err) > 0:
-        print err
-        raise RuntimeError, "Problem while running halfcosbasis."
+        print(err)
+        raise RuntimeError("Problem while running halfcosbasis.")
 
     # read samples from file into an array
     hrfs = np.fromfile( pathjoin( wdir, 'out', 'hrfsamps.txt' ),

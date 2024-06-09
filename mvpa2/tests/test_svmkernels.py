@@ -78,7 +78,7 @@ class SVMKernelTests(unittest.TestCase):
         #print 'Speedup factor: %s'%speedup
 
         # Speedup ideally should be 10, though it's not purely linear
-        self.failIf(speedup < 2, 'Problem caching data - too slow!')
+        self.assertFalse(speedup < 2, 'Problem caching data - too slow!')
 
     def test_cached_kernel_different_datasets(self):
         skip_if_no_external('shogun', ver_dep='shogun:rev', min_version=4455)
@@ -98,7 +98,7 @@ class SVMKernelTests(unittest.TestCase):
         te = ProxyMeasure(clf, postproc=postproc)
         te_ = ProxyMeasure(clf_, postproc=postproc)
 
-        for r in xrange(2):
+        for r in range(2):
             ds1 = datasets['uni2medium']
             errs1 = cvte(ds1)
             ck.compute(ds1)

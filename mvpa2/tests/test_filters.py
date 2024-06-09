@@ -21,7 +21,7 @@ def test_resample():
     time = np.linspace(0, 2*np.pi, 100)
     ds = Dataset(np.vstack((np.sin(time), np.cos(time))).T,
                  sa = {'time': time,
-                       'section': np.repeat(range(10), 10)})
+                       'section': np.repeat(list(range(10)), 10)})
     assert_equal(ds.shape, (100, 2))
 
     # downsample
@@ -43,7 +43,7 @@ def test_resample():
     # very similar too
     assert_array_almost_equal(mds.samples[2:], mds_partial.samples[2:], decimal=2)
     # simple sample of sa's should give meaningful stuff
-    assert_array_equal(mds.sa.section, range(10))
+    assert_array_equal(mds.sa.section, list(range(10)))
 
     # and now for a dataset with chunks
     cds = vstack([ds.copy(), ds.copy()])
@@ -52,7 +52,7 @@ def test_resample():
                            window=('gauss', 50))
     mcds = rm.forward(cds)
     assert_equal(mcds.shape, (20, 2))
-    assert_array_equal(mcds.sa.section, np.tile(range(10),2))
+    assert_array_equal(mcds.sa.section, np.tile(list(range(10)),2))
     # each individual chunks should be identical to previous dataset
     assert_array_almost_equal(mds.samples, mcds.samples[:10])
     assert_array_almost_equal(mds.samples, mcds.samples[10:])

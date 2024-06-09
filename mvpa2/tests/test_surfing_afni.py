@@ -36,7 +36,7 @@ class SurfTests(unittest.TestCase):
 
     def _get_rng(self):
         keys = [(17 * i ** 5 + 78234745 * i + 8934) % (2 ** 32 - 1)
-                for i in xrange(624)]
+                for i in range(624)]
         keys = np.asanyarray(keys, dtype=np.uint32)
         rng = np.random.RandomState()
         rng.set_state(('MT19937', keys, 0))
@@ -95,20 +95,20 @@ class SurfTests(unittest.TestCase):
             return np.all(p == q) if type(p) is np.ndarray else p == q
 
 
-        for fmt, data_repr in fmt_data_reprs.iteritems():
+        for fmt, data_repr in fmt_data_reprs.items():
             s = afni_niml.rawniml2string(minimal_niml_struct, fmt)
             d = afni_niml.string2rawniml(s)
 
             # ensure data was converted properly
 
-            for k, v in minimal_niml_struct[0].iteritems():
+            for k, v in minimal_niml_struct[0].items():
                 if k == 'nodes':
                     # at least in one of the data
                     for node in v:
-                        for kk, vv in node.iteritems():
+                        for kk, vv in node.items():
                             # at least one of the data fields should have a value matching
                             # that from the expected converted value
-                            dvals = [d[0]['nodes'][i].get(kk, None) for i in xrange(len(v))]
+                            dvals = [d[0]['nodes'][i].get(kk, None) for i in range(len(v))]
                             assert_true(any([_eq(vv, dval) for dval in dvals]))
 
                 elif k != 'name':
@@ -137,18 +137,18 @@ class SurfTests(unittest.TestCase):
             d_empty_nodes = afni_niml.string2rawniml(s_empty_nodes)
             assert_array_equal(d[0]['nodes'][0]['data'],
                                d_empty_nodes[0]['nodes'][0]['data'])
-            assert_equal(d[0]['nodes'][0].keys(),
-                         d_empty_nodes[0]['nodes'][0].keys())
+            assert_equal(list(d[0]['nodes'][0].keys()),
+                         list(d_empty_nodes[0]['nodes'][0].keys()))
             assert_array_equal(d[0]['nodes'][1]['data'],
                                d_empty_nodes[0]['nodes'][1]['data'])
-            assert_equal(d[0]['nodes'][1].keys(),
-                         d_empty_nodes[0]['nodes'][1].keys())
+            assert_equal(list(d[0]['nodes'][1].keys()),
+                         list(d_empty_nodes[0]['nodes'][1].keys()))
 
 
     @with_tempfile('.niml.dset', 'dset')
     def test_surface_dset_niml_io_with_unicode(self, fn):
         ds = dataset_wizard(np.arange(20).reshape((4, 5)), targets=1, chunks=1)
-        ds.sa['unicode'] = [u'u1', u'uu2', u'uuu3', u'uuuu4']
+        ds.sa['unicode'] = ['u1', 'uu2', 'uuu3', 'uuuu4']
         ds.sa['str'] = ['s1', 'ss2', 'sss3', 'ssss4']
         ds.fa['node_indices'] = np.arange(5)
 
@@ -171,7 +171,7 @@ class SurfTests(unittest.TestCase):
             raise ValueError('not found: %s', name)
 
 
-        for name, expected_dtype in expected_dtypes.iteritems():
+        for name, expected_dtype in expected_dtypes.items():
             assert_has_expected_datatype(name, expected_dtype, niml)
 
 
@@ -199,7 +199,7 @@ class SurfTests(unittest.TestCase):
         from mvpa2.base.hdf5 import h5save, h5load
 
         ds = dataset_wizard(np.arange(20).reshape((4, 5)), targets=1, chunks=1)
-        ds.sa['unicode'] = [u'u1', u'uu2', u'uuu3', u'uuuu4']
+        ds.sa['unicode'] = ['u1', 'uu2', 'uuu3', 'uuuu4']
         ds.sa['str'] = ['s1', 'ss2', 'sss3', 'ssss4']
         ds.fa['node_indices'] = np.arange(5)
 
@@ -215,7 +215,7 @@ class SurfTests(unittest.TestCase):
         # but should still be handled properly for i/o.
         # Addresses https://github.com/PyMVPA/PyMVPA/issues/163 (#163)
         samples = np.asarray([[1, 2, 3], [4, 5, 6]])
-        labels = np.asarray(map(list, ['abcd', 'efgh']))
+        labels = np.asarray(list(map(list, ['abcd', 'efgh'])))
         idxs = np.asarray([np.arange(10, 14), np.arange(20, 24)])
 
         ds = Dataset(samples, sa=dict(labels=labels, idxs=idxs))
@@ -227,7 +227,7 @@ class SurfTests(unittest.TestCase):
 
             assert_array_equal(ds.samples, ds_.samples)
 
-            for sa_key in ds.sa.keys():
+            for sa_key in list(ds.sa.keys()):
                 v = ds.sa[sa_key].value
                 v_ = ds_.sa[sa_key].value
                 assert_array_equal(v, v_)
@@ -253,7 +253,7 @@ class SurfTests(unittest.TestCase):
 
         # set labels for samples, and set node indices
         labels = ['lab_%d' % round(rng.uniform() * 1000)
-                  for _ in xrange(sz[1])]
+                  for _ in range(sz[1])]
         node_indices = np.argsort(rng.uniform(size=(sz[0],)))
         node_indices = np.reshape(node_indices, (sz[0], 1))
 
@@ -270,7 +270,7 @@ class SurfTests(unittest.TestCase):
                     dset = dict(data=np.asarray(data, tp),
                                 labels=labels,
                                 node_indices=node_indices)
-                    dset_keys = dset.keys()
+                    dset_keys = list(dset.keys())
 
                     if mode == 'skipio':
                         # try conversion to/from raw NIML
@@ -312,7 +312,7 @@ class SurfTests(unittest.TestCase):
                                 v2 = dset3['data'][idxs3, :]
                             else:
                                 # check that data is as expected
-                                for pos, val in expected_vals.iteritems():
+                                for pos, val in expected_vals.items():
                                     if val is None:
                                         assert_raises(IndexError, lambda x: x[pos], v2)
                                     else:
@@ -430,7 +430,7 @@ class SurfTests(unittest.TestCase):
 
 
     def test_niml_dset_stack(self):
-        values = map(lambda x: np.random.normal(size=x), [(10, 3), (10, 4), (10, 5)])
+        values = [np.random.normal(size=x) for x in [(10, 3), (10, 4), (10, 5)]]
         indices = [[0, 1, 2], [3, 2, 1, 0], None]
 
         dsets = []
@@ -521,7 +521,7 @@ class SurfTests(unittest.TestCase):
                           arr([42954, 42953, 42952, 42951, 42950, 42949,
                                42948, 42947, 42946])]
 
-        for i in xrange(4):
+        for i in range(4):
             assert_array_equal(roi['edges'][i], expected_edges[i])
 
         # check nodes
@@ -534,7 +534,7 @@ class SurfTests(unittest.TestCase):
 
         # check mapping
         m = afni_niml_roi.read_mapping(rois)
-        assert_equal(m.keys(), ['myroi'])
+        assert_equal(list(m.keys()), ['myroi'])
 
         unique_nodes = np.unique(expected_nodes[0])
         assert_array_equal(m['myroi'], unique_nodes)

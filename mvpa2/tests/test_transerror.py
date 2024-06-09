@@ -154,7 +154,7 @@ class ErrorsTests(unittest.TestCase):
         self.assertTrue((cm.matrix == correct_cm).all())
         # assure that all labels are somewhere listed ;-)
         s = str(cm)
-        for l in lm.keys():
+        for l in list(lm.keys()):
             self.assertTrue(l in s)
 
     def test_confusion_call(self):
@@ -294,7 +294,7 @@ class ErrorsTests(unittest.TestCase):
         ds3 = datasets['uni3' + ds_size].copy()
         ul = ds3.sa['targets'].unique
         nl = ds3.targets.copy()
-        for l in xrange(3):
+        for l in range(3):
             nl[ds3.targets == ul[l]] = ul[(l+1)%3]
         ds3.sa.targets = nl
         for ds in [datasets['uni2' + ds_size], ds2,

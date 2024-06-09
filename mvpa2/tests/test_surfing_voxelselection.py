@@ -273,7 +273,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
                                 16, 18, 16, 16, 16, 16, 18, 16]])
 
         params = dict(intermediate_=(intermediate, intermediatefn, None),
-                      center_nodes_=(None, range(nv)),
+                      center_nodes_=(None, list(range(nv))),
                       volume_=(volimg, volfn, volds, volfngz, voldsgz),
                       surf_src_=('filename', 'surf'),
                       volume_mask_=(None, True, 0, 2),
@@ -292,7 +292,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
         def val2str(x):
             return '%r:%r' % (type(x), x)
 
-        for i in xrange(0, len(combis), combistep):
+        for i in range(0, len(combis), combistep):
             combi = combis[i]
 
             intermediate_ = combi['intermediate_']
@@ -306,7 +306,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
             # keep track of which values were used -
             # so that this unit test tests itself
 
-            for k in combi.keys():
+            for k in list(combi.keys()):
                 if not k in tested_params:
                     tested_params[k] = set()
                 tested_params[k].add(val2str(combi[k]))
@@ -350,7 +350,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
                     source_surf_nodes=center_nodes_)
                 mp = sel
 
-                ks = sel.keys()
+                ks = list(sel.keys())
                 nk = len(ks)
                 r = np.zeros((1, nk))
                 for i, k in enumerate(ks):
@@ -363,7 +363,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
         all_fns = [volfn, volfngz, outerfn, innerfn, intermediatefn]
         list(map(os.remove, all_fns))
 
-        for k, vs in params.iteritems():
+        for k, vs in params.items():
             if not k in tested_params:
                 raise ValueError("Missing key: %r" % k)
             for v in vs:
@@ -391,7 +391,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
 
         vs = volsurf.VolSurfMaximalMapping(vg, white, pial, nsteps=2)
         n2vs = vs.get_node2voxels_mapping()
-        assert_equal(n2vs, dict((i, {i: 0., i + 100: 1.}) for i in xrange(100)))
+        assert_equal(n2vs, dict((i, {i: 0., i + 100: 1.}) for i in range(100)))
 
         nd = 17
         ds_mm_expected = np.sum((above.vertices - pial.vertices[nd, :]) ** 2,
@@ -437,11 +437,11 @@ class SurfVoxelSelectionTests(unittest.TestCase):
                     if outside_node_margin is True:
                         # it should have all the keys, but they should
                         # all be empty
-                        assert_array_equal(sel.keys(), range(inner.nvertices))
-                        for k, v in sel.iteritems():
+                        assert_array_equal(list(sel.keys()), list(range(inner.nvertices)))
+                        for k, v in sel.items():
                             assert_equal(v, [])
                     else:
-                        assert_array_equal(sel.keys(), [])
+                        assert_array_equal(list(sel.keys()), [])
 
                     if outside_node_margin is True and \
                                     externals.versions['hdf5'] < '1.8.7':
@@ -451,8 +451,8 @@ class SurfVoxelSelectionTests(unittest.TestCase):
                     h5save(fn, sel)
                     sel_copy = h5load(fn)
 
-                    assert_array_equal(sel.keys(), sel_copy.keys())
-                    for k in sel.keys():
+                    assert_array_equal(list(sel.keys()), list(sel_copy.keys()))
+                    for k in list(sel.keys()):
                         assert_equal(sel[k], sel_copy[k])
 
                     assert_equal(sel, sel_copy)
@@ -533,10 +533,10 @@ class SurfVoxelSelectionTests(unittest.TestCase):
                     voxsel = qe.voxsel
 
                     if i == 0:
-                        keys_ = voxsel.keys()
+                        keys_ = list(voxsel.keys())
                         voxsel_ = voxsel
                     else:
-                        keys = voxsel.keys()
+                        keys = list(voxsel.keys())
                         # minimal one has a subset
                         assert_equal(keys, keys_)
 
@@ -586,7 +586,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
         i = qe.ids[0]
         try:
             m = qe[i]
-        except ValueError, e:
+        except ValueError as e:
             raise AssertionError(
                 'Failed to query %r from %r after training on %r. '
                 'Exception was: %r'
@@ -604,7 +604,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
         # end with both set to False so that VolumeMaskDictionary is back
         # in its original state
         # XXX is manipulating class methods this way too dangerous?
-        true_false_combis = [(i % 2 == 1, i // 2 == 0) for i in xrange(3, 7)]
+        true_false_combis = [(i % 2 == 1, i // 2 == 0) for i in range(3, 7)]
 
         # try different ways to load volume mask dictionaries
         # first argument is filename, second argument is volume mask dictionary
@@ -690,8 +690,8 @@ class SurfVoxelSelectionTests(unittest.TestCase):
             if i == 0:
                 voxsel0 = voxsel
             else:
-                assert_equal(voxsel.keys(), voxsel0.keys())
-                for k in voxsel.keys():
+                assert_equal(list(voxsel.keys()), list(voxsel0.keys()))
+                for k in list(voxsel.keys()):
                     p = voxsel[k]
                     q = voxsel0[k]
 
@@ -704,7 +704,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
 
                 h5save(fn, voxsel)
                 voxsel_copy = h5load(fn)
-                assert_equal(voxsel.keys(), voxsel_copy.keys())
+                assert_equal(list(voxsel.keys()), list(voxsel_copy.keys()))
 
                 for id in qe.ids:
                     assert_array_equal(voxsel.get(id),
@@ -733,12 +733,12 @@ class SurfVoxelSelectionTests(unittest.TestCase):
         sel = surf_voxel_selection.run_voxel_selection(radius, ds,
                                                        inner, outer)
 
-        sel_fids = set.union(*(set(sel[k]) for k in sel.keys()))
+        sel_fids = set.union(*(set(sel[k]) for k in list(sel.keys())))
 
-        ds_vox = map(tuple, ds.fa.voxel_indices)
+        ds_vox = list(map(tuple, ds.fa.voxel_indices))
 
         vg = sel.volgeom
-        sel_vox = map(tuple, vg.lin2ijk(np.asarray(list(sel_fids))))
+        sel_vox = list(map(tuple, vg.lin2ijk(np.asarray(list(sel_fids)))))
 
         fid_mask = np.asarray([v in sel_vox for v in ds_vox])
         assert_array_equal(fid_mask, sel.get_dataset_feature_mask(ds))
@@ -788,7 +788,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
                                (205, 209, 210, 214): 36,
                                None: 126}}
 
-        for constructor, ids2nfeatures in qe_ids2nvoxels.iteritems():
+        for constructor, ids2nfeatures in qe_ids2nvoxels.items():
             qe = constructor(sel)
             qe.train(ds)
             img = qe.get_masked_nifti_image()
@@ -796,7 +796,7 @@ class SurfVoxelSelectionTests(unittest.TestCase):
                                qe.get_masked_nifti_image(qe.ids).get_data())
 
             img_getter = qe.get_masked_nifti_image
-            for ids, nfeatures in ids2nfeatures.iteritems():
+            for ids, nfeatures in ids2nfeatures.items():
 
                 ids_list = ids if ids is None else list(ids)
                 if nfeatures is None and ids is not None:

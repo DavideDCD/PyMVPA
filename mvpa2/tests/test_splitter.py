@@ -226,8 +226,8 @@ class SplitterTests(unittest.TestCase):
         # not blow up as if would do if it was not limited by count
         kwargs = dict(count=10)
         ds = dataset_wizard(np.arange(1000).reshape((-1, 1)),
-                            targets=range(1000),
-                            chunks=range(500)*2)
+                            targets=list(range(1000)),
+                            chunks=list(range(500))*2)
         split_partitions_random = [
             tuple(x.sa.partitions)
             for x in NFoldPartitioner(100,  selection_strategy='random',
@@ -319,7 +319,7 @@ class SplitterTests(unittest.TestCase):
 
                 # Check results of different strategies
                 if strategy == 'first':
-                    self.assertEqual(chosenchunks, range(target))
+                    self.assertEqual(chosenchunks, list(range(target)))
                 elif strategy == 'equidistant':
                     if target == 3:
                         self.assertEqual(chosenchunks, [0, 3, 7])
@@ -328,8 +328,8 @@ class SplitterTests(unittest.TestCase):
                     self.assertTrue(len(set(chosenchunks)) == len(chosenchunks))
                     self.assertTrue(target == len(chosenchunks))
                 else:
-                    raise RuntimeError, "Add unittest for strategy %s" \
-                          % strategy
+                    raise RuntimeError("Add unittest for strategy %s" \
+                          % strategy)
 
 
     def test_discarded_boundaries(self):

@@ -37,7 +37,7 @@ def write(fnout, data, nodeidxs=None):
         fmt = []
 
     # 5 decimal places should be enough for everyone
-    fmt.extend(['%.5f' for _ in xrange(nt)])
+    fmt.extend(['%.5f' for _ in range(nt)])
 
     np.savetxt(fnout, data, fmt, ' ')
 
@@ -45,15 +45,15 @@ def read(fn):
     not_empty = lambda x:len(x) > 0 and not x.startswith('#')
 
     with open(fn) as f:
-        lines = filter(not_empty, f.read().split('\n'))
+        lines = list(filter(not_empty, f.read().split('\n')))
 
-    ys = [map(float, line.split()) for line in lines]
+    ys = [list(map(float, line.split())) for line in lines]
     return np.asarray(ys)
 
 def from_any(s):
     if isinstance(s, np.ndarray):
         return s.copy()
-    elif isinstance(s, basestring):
+    elif isinstance(s, str):
         return read(s)
 
     raise TypeError("Not understood: %s" % s)

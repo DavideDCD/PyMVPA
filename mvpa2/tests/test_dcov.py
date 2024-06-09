@@ -37,7 +37,7 @@ def test_euclidean_distances():
 def test_dCOV_against_R_energy():
     skip_if_no_external('cran-energy')
 
-    for N in xrange(1, 10): # sweep through size of the first data
+    for N in range(1, 10): # sweep through size of the first data
         # We will compare to R implementation
         M, T = 4, 30
         x = np.random.normal(size=(N, T)) + np.random.normal() * 10
@@ -58,7 +58,7 @@ def test_dCOV_against_R_energy():
 @labile(5, 1)
 def test_dCOV():
     # Few simple tests to verify that the measure seems to be ok
-    for N in xrange(1, 10): # sweep through size of the first data
+    for N in range(1, 10): # sweep through size of the first data
         # We will compare to R implementation
         M, T = 4, 100
         x = np.random.normal(size=(N, T)) + np.random.normal() * 10

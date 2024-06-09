@@ -174,7 +174,7 @@ class SearchlightTests(unittest.TestCase):
             sl_all = SL(sllrn, partitioner, **skwargs)
             result_all = sl_all(ds)
             # select random features
-            roi_ids = rnd.permutation(range(ds.nfeatures))[:nroi]
+            roi_ids = rnd.permutation(list(range(ds.nfeatures)))[:nroi]
             skwargs['center_ids'] = roi_ids
         else:
             nroi = ds.nfeatures
@@ -393,7 +393,7 @@ class SearchlightTests(unittest.TestCase):
                     IndexQueryEngine(myspace=n),
                     add_center_fa='center')(ds)
             # and no changes to original ds data, etc
-            assert_array_equal(datasets['3dsmall'].fa.keys(), ds.fa.keys())
+            assert_array_equal(list(datasets['3dsmall'].fa.keys()), list(ds.fa.keys()))
             assert_array_equal(datasets['3dsmall'].samples, ds.samples)
 
 
@@ -648,7 +648,7 @@ class SearchlightTests(unittest.TestCase):
         assert_equal(results[0].shape, results[1].shape)
         results = [r.flatten() for r in results]
         for x, y in zip(*results):
-            assert_equal(x.keys(), y.keys())
+            assert_equal(list(x.keys()), list(y.keys()))
             assert_array_equal(x['d'], y['d'])
         # verify that no junk is left behind
         tempfiles = glob.glob(our_custom_prefix + '*')

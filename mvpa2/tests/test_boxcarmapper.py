@@ -131,7 +131,7 @@ def test_datasetmapping():
     # feature attributes also get rotated and broadcasted
     assert_array_equal(mds.fa.fid, [ds.fa.fid, ds.fa.fid])
     # and finally there is a new one
-    assert_array_equal(mds.fa.boxy_offsetidx, range(boxlength))
+    assert_array_equal(mds.fa.boxy_offsetidx, list(range(boxlength)))
 
     # now see how it works on reverse()
     rds = bm.reverse(mds)

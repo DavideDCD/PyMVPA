@@ -81,7 +81,7 @@ def numpy_data_isstring(data):
 def numpy_data2printer(data):
     tp = type(data)
     if tp is list:
-        return map(numpy_data2printer, data)
+        return list(map(numpy_data2printer, data))
     elif tp is str:
         return lambda x: '"%s"' % x
     elif tp == np.ndarray:
@@ -99,7 +99,7 @@ def numpy_data2printer(data):
 
 def code2python_type(i):
     if type(i) is list:
-        return map(code2python_type, i)
+        return list(map(code2python_type, i))
     else:
         return python_types[i]
 
@@ -108,7 +108,7 @@ def nimldataassupporteddtype(data):
     tp = type(data)
 
     if tp is list:
-        return map(nimldataassupporteddtype, data)
+        return list(map(nimldataassupporteddtype, data))
 
     if not type(data) is np.ndarray:
         return data
@@ -125,7 +125,7 @@ def nimldataassupporteddtype(data):
 
 def numpy_type2code(tp):
     if type(tp) is list:
-        return map(numpy_type2code, tp)
+        return list(map(numpy_type2code, tp))
     else:
         for i, t in enumerate(np_types):
             if t == tp:
@@ -145,7 +145,7 @@ def numpy_type2code(tp):
 
 def code2numpy_type(i):
     if type(i) is list:
-        return map(code2numpy_type, i)
+        return list(map(code2numpy_type, i))
     else:
         return np_types[i]
 

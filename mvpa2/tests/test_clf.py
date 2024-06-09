@@ -186,7 +186,7 @@ class ClassifiersTests(unittest.TestCase):
         ds = datasets['uni%d%s' % (nclasses, self._get_clf_ds(clf))]
         try:
             cve = te(ds).samples.squeeze()
-        except Exception, e:
+        except Exception as e:
             self.fail("Failed with %s" % e)
 
         if cfg.getboolean('tests', 'labile', default='yes'):
@@ -239,7 +239,7 @@ class ClassifiersTests(unittest.TestCase):
 
             mvpa2.seed()
             cve_ = te_(ds_)
-        except Exception, e:
+        except Exception as e:
             self.fail("Failed with %r" % e)
 
         assert_array_almost_equal(cve, cve_)
@@ -313,7 +313,7 @@ class ClassifiersTests(unittest.TestCase):
             try:
                 try:
                     clf.train(ds)                   # should not crash or stall
-                except (ValueError, AssertionError) as e:
+                except (ValueError) as e:
                     self.fail("Failed to train on degenerate data. Error was %r" % e)
                 except DegenerateInputError:
                     # so it realized that data is degenerate and puked
@@ -350,7 +350,7 @@ class ClassifiersTests(unittest.TestCase):
                                                       'targets'))
         try:
             err = np.asscalar(trerr(ds_))
-        except Exception, e:
+        except Exception as e:
             self.fail(str(e))
         self.assertTrue(err == 0.)
 
@@ -553,7 +553,7 @@ class ClassifiersTests(unittest.TestCase):
         clf_reg = FeatureSelectionClassifier(sample_clf_reg, feat_sel)
         clf_reg.train(dat)
         _ = clf_reg.predict(dat.samples)
-        self.failIf((np.array(clf_reg.ca.estimates)
+        self.assertFalse((np.array(clf_reg.ca.estimates)
                      - clf_reg.ca.predictions).sum()==0,
                     msg="Values were set to the predictions in %s." %
                     sample_clf_reg)
@@ -739,7 +739,7 @@ class ClassifiersTests(unittest.TestCase):
     @sweepargs(clf=clfswh['svm', '!meta'])
     def test_svms(self, clf):
         knows_probabilities = \
-            'probabilities' in clf.ca.keys() and clf.params.probability
+            'probabilities' in list(clf.ca.keys()) and clf.params.probability
         enable_ca = ['estimates']
         if knows_probabilities:
             enable_ca += ['probabilities']
@@ -831,7 +831,7 @@ class ClassifiersTests(unittest.TestCase):
                     " than to old one. Got corrcoef=%s" % (corr_old))
 
         # Check sequential retraining/retesting
-        for i in xrange(3):
+        for i in range(3):
             flag = bool(i!=0)
             # ok - on 1st call we should train/test, then retrain/retest
             # and we can't compare for closinest to old result since
@@ -848,9 +848,8 @@ class ClassifiersTests(unittest.TestCase):
             clf_re.params.sigma_noise *= 100
             batch_test()
         else:
-            raise RuntimeError, \
-                  'Please implement testing while changing some of the ' \
-                  'params for clf %s' % clf
+            raise RuntimeError('Please implement testing while changing some of the ' \
+                  'params for clf %s' % clf)
 
         # should retrain nicely if we change kernel parameter
         if hasattr(clf, 'kernel_params') and len(clf.kernel_params):
@@ -954,15 +953,15 @@ class ClassifiersTests(unittest.TestCase):
             clf.train(traindata)
             self.assertEqual(clf.ca.training_stats.percent_correct, 100.0,
                 "Classifier %s must have 100%% correct learning on %s. Has %f" %
-                (`clf`, traindata.samples, clf.ca.training_stats.percent_correct))
+                (repr(clf), traindata.samples, clf.ca.training_stats.percent_correct))
 
             # and we must be able to predict every original sample thus
-            for i in xrange(traindata.nsamples):
+            for i in range(traindata.nsamples):
                 sample = traindata.samples[i,:]
                 predicted = clf.predict([sample])
                 self.assertEqual([predicted], traindata.targets[i],
                     "We must be able to predict sample %s using " % sample +
-                    "classifier %s" % `clf`)
+                    "classifier %s" % repr(clf))
         clf.ca.reset_changed_temporarily()
 
 
@@ -1019,7 +1018,7 @@ class ClassifiersTests(unittest.TestCase):
         accs = []
         k = 1                           # for kNN
         nf = 1                          # for NFoldPartitioner
-        for i in xrange(1):          # # of random runs
+        for i in range(1):          # # of random runs
             ds.samples = np.random.randn(*ds.shape)
             #
             # There are 3 ways to accomplish needed goal

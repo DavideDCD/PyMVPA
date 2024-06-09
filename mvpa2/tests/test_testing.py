@@ -161,7 +161,7 @@ def test_assert_datasets_almost_equal(digits, attribute):
     def remove_attribute(name):
         ds2 = ds.copy(deep=True)
         attr = ds2.__dict__[name]
-        for key in attr.keys():
+        for key in list(attr.keys()):
             attr.pop(key)
         return ds2
 
@@ -179,7 +179,7 @@ def test_assert_datasets_almost_equal(digits, attribute):
             assert_datasets_not_almost_equal(ds, ds2, decimal=digits - 1)
 
             # test ignore_ options
-            args = {('ignore_' + attribute): args[attribute].keys()}
+            args = {('ignore_' + attribute): list(args[attribute].keys())}
             assert_datasets_equal(ds, ds2, **args)
             assert_datasets_almost_equal(ds, ds2, **args)
 

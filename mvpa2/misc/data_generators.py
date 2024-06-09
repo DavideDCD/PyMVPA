@@ -36,7 +36,7 @@ def multiple_chunks(func, n_chunks, *args, **kwargs):
     ds : `mvpa2.datasets.base.Dataset`
     """
     dss = []
-    for chunk in xrange(n_chunks):
+    for chunk in range(n_chunks):
         ds_ = func(*args, **kwargs)
         # might not have chunks at all
         if not 'chunks' in ds_.sa:
@@ -57,7 +57,7 @@ def dumb_feature_dataset():
             [12, 1]]
     regs = ([1] * 8) + ([2] * 8) + ([3] * 8)
 
-    return dataset_wizard(samples=np.array(data), targets=regs, chunks=range(len(regs)))
+    return dataset_wizard(samples=np.array(data), targets=regs, chunks=list(range(len(regs))))
 
 
 def dumb_feature_binary_dataset():
@@ -69,7 +69,7 @@ def dumb_feature_binary_dataset():
             [12, 1]]
     regs = ([0] * 12) + ([1] * 12)
 
-    return dataset_wizard(samples=np.array(data), targets=regs, chunks=range(len(regs)))
+    return dataset_wizard(samples=np.array(data), targets=regs, chunks=list(range(len(regs))))
 
 
 def normal_feature_dataset(perlabel=50, nlabels=2, nfeatures=4, nchunks=5,
@@ -124,9 +124,9 @@ def normal_feature_dataset(perlabel=50, nlabels=2, nfeatures=4, nchunks=5,
         # bring it 'under 1', since otherwise some classifiers have difficulties
         # during optimization
         data = 1.0 / (np.max(np.abs(data))) * data
-    labels = np.concatenate([np.repeat(u'L%d' % i, perlabel)
+    labels = np.concatenate([np.repeat('L%d' % i, perlabel)
                              for i in range(nlabels)])
-    chunks = np.concatenate([np.repeat(range(nchunks),
+    chunks = np.concatenate([np.repeat(list(range(nchunks)),
                                        perlabel // nchunks)
                              for i in range(nlabels)])
     ds = dataset_wizard(data, targets=labels, chunks=chunks)
@@ -186,7 +186,7 @@ def pure_multivariate_signal(patterns, signal2noise=1.5, chunks=None,
     regs = np.array((targets[0:1] * patterns) + (targets[1:2] * 2 * patterns) + (targets[0:1] * patterns))
 
     if chunks is None:
-        chunks = range(len(data))
+        chunks = list(range(len(data)))
     return dataset_wizard(samples=data, targets=regs, chunks=chunks)
 
 
@@ -225,7 +225,7 @@ def wr1996(size=200):
     x *= np.array(intervals[:, 1] - intervals[:, 0])
     x += np.array(intervals[:, 0])
     if __debug__:
-        for i in xrange(2):
+        for i in range(2):
             debug('DG', '%d columnt Min: %g Max: %g' %
                   (i, x[:, i].min(), x[:, i].max()))
     y = r[0] * np.cos(x[:, 0] + r[1] * np.cos(x.sum(1))) + \
@@ -266,7 +266,7 @@ def chirp_linear(n_instances, n_features=4, n_nonbogus_features=2,
     y = np.sin((10 * np.pi * x ** 2))
 
     data = np.random.normal(size=(n_instances, n_features)) * data_noise
-    for i in xrange(n_nonbogus_features):
+    for i in range(n_nonbogus_features):
         data[:, i] += y[:]
 
     labels = y + np.random.normal(size=(n_instances,)) * noise
@@ -470,7 +470,7 @@ def simple_hrf_dataset(
         off = int((e['onset'] + e.get('duration', 1.)) / float(tres))
         if off == on:
             off += 1                      # so we have at least 1 point
-        assert(range(on, off))
+        assert(list(range(on, off)))
         fast_er[on:off] = e.get('intensity', 1)
     # high resolution model of the convolved regressor
     model_hr = np.convolve(fast_er, hrf)[:nsamples]

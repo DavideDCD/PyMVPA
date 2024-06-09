@@ -108,7 +108,7 @@ class KernelTests(unittest.TestCase):
 
     def test_linear_kernel(self):
         """Simplistic testing of linear kernel"""
-        d1 = Dataset(np.asarray([range(5)] * 10, dtype=float))
+        d1 = Dataset(np.asarray([list(range(5))] * 10, dtype=float))
         lk = npK.LinearKernel()
         lk.compute(d1)
         self.assertTrue(lk._k.shape == (10, 10),
@@ -147,7 +147,7 @@ class KernelTests(unittest.TestCase):
             rk.compute(chunk)
             ck.compute(chunk)
             self.kernel_equiv(rk, ck) #, accuracy=1e-12)
-            self.failIf(ck._recomputed,
+            self.assertFalse(ck._recomputed,
                         "CachedKernel incorrectly recomputed it's kernel")
 
         # Test what happens when a parameter changes

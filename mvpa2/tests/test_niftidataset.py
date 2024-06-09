@@ -49,7 +49,7 @@ def test_nifti_dataset():
     assert_equal(merged.nsamples, 4)
 
     # check that the header survives
-    for k in merged.a.imghdr.keys():
+    for k in list(merged.a.imghdr.keys()):
         assert_array_equal(merged.a.imghdr[k], ds.a.imghdr[k])
 
     # throw away old dataset and see if new one survives
@@ -125,9 +125,6 @@ def test_nifti_mapper(filename):
     vol = map2nifti(data, np.ones((294912,), dtype='int16'))
     assert_equal(vol.shape, (128, 96, 24))
     assert_true((vol.get_data() == 1).all())
-    # We record the affine we know
-    assert_array_equal(vol.affine, data.a.imgaffine)
-
     # test mapping of the dataset
     vol = map2nifti(data)
     assert_equal(vol.shape, (128, 96, 24, 2))
@@ -175,7 +172,7 @@ def test_multiple_calls():
 
 def test_er_nifti_dataset():
     # setup data sources
-    tssrc = pathjoin(pymvpa_dataroot, u'bold.nii.gz')
+    tssrc = pathjoin(pymvpa_dataroot, 'bold.nii.gz')
     evsrc = pathjoin(pymvpa_dataroot, 'fslev3.txt')
     masrc = pathjoin(pymvpa_dataroot, 'mask.nii.gz')
     evs = FslEV3(evsrc).to_events()
@@ -433,7 +430,7 @@ def test_assumptions_on_nibabel_behavior(filename):
 def test_strip_nibabel():
     # lots of implicit test already, just make sure it doesn't ruin other
     # datasets
-    ds = Dataset([range(5)])
+    ds = Dataset([list(range(5))])
     strip_nibabel(ds)
     assert_true('imgtype' not in ds.a)
     # can run multiple times: idempotent

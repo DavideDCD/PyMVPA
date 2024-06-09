@@ -36,7 +36,7 @@ def test_pval():
         random.shuffle(x)
         return x
 
-    x = range(100000) * 20
+    x = list(range(100000)) * 20
     x = np.array(x)
     x = x.reshape(20, 100000)
     x = x.T
@@ -51,7 +51,7 @@ def test_pval():
     assert_raises(ValueError,
                   gct.get_thresholding_map, x, p=0.00000001)
 
-    x = range(0, 100, 5)
+    x = list(range(0, 100, 5))
     null_dist = np.repeat(1, 100).astype(float)[None]
     pvals = gct._transform_to_pvals(x, null_dist)
     desired_output = np.array([1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6,
@@ -154,8 +154,8 @@ def test_group_clusterthreshold_simple(n_proc):
     nperms = 100 * nsubj
     perm_samples = np.random.randn(nperms, blob.nfeatures)
     perms = Dataset(perm_samples,
-                    sa=dict(chunks=np.repeat(range(nsubj), len(perm_samples) / nsubj)),
-                    fa=dict(fid=range(perm_samples.shape[1])))
+                    sa=dict(chunks=np.repeat(list(range(nsubj)), len(perm_samples) / nsubj)),
+                    fa=dict(fid=list(range(perm_samples.shape[1]))))
     # the algorithm instance
     # scale number of bootstraps to match desired probability
     # plus a safety margin to minimize bad luck in sampling
@@ -174,7 +174,7 @@ def test_group_clusterthreshold_simple(n_proc):
 
     clstr_sizes = clthr._null_cluster_sizes
     # getting anything but a lonely one feature cluster is very unlikely
-    assert_true(max([c[0] for c in clstr_sizes.keys()]) <= 1)
+    assert_true(max([c[0] for c in list(clstr_sizes.keys())]) <= 1)
     # threshold orig map
     res = clthr(blob)
     #
@@ -230,7 +230,7 @@ def test_group_clusterthreshold_simple(n_proc):
     # retrain, this time with data from only a single subject
     perms = Dataset(perm_samples,
                     sa=dict(chunks=np.repeat(1, len(perm_samples))),
-                    fa=dict(fid=range(perms.shape[1])))
+                    fa=dict(fid=list(range(perms.shape[1]))))
     clthr.train(perms)
     # same blob -- 1st this should work without issues
     sglres = clthr(blob)
@@ -263,7 +263,7 @@ def test_group_clusterthreshold_simple(n_proc):
     nperms = 100 * nsubj
     perm_samples = np.random.randn(*((nperms,) + blob.shape))
     perms = dataset_wizard(
-        perm_samples, chunks=np.repeat(range(nsubj), len(perm_samples) / nsubj))
+        perm_samples, chunks=np.repeat(list(range(nsubj)), len(perm_samples) / nsubj))
     clthr.train(perms)
     twodres = clthr(blob)
     # finds two clusters of the same size

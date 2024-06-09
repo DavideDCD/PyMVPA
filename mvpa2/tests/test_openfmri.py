@@ -46,11 +46,11 @@ def test_openfmri_dataset():
     assert_equal(of.get_scan_properties(), {'TR': '2.5'})
     tasks = of.get_task_descriptions()
     assert_equal(tasks, {1: 'object viewing'})
-    task = tasks.keys()[0]
+    task = list(tasks.keys())[0]
     run_ids = of.get_bold_run_ids(sub_ids[0], task)
-    assert_equal(run_ids, range(1, 13))
+    assert_equal(run_ids, list(range(1, 13)))
     task_runs = of.get_task_bold_run_ids(task)
-    assert_equal(task_runs, {1: range(1, 13)})
+    assert_equal(task_runs, {1: list(range(1, 13))})
 
     # test access anatomy image
     assert_equal(of.get_anatomy_image(1, fname='lowres001.nii.gz').shape,
@@ -70,7 +70,7 @@ def test_openfmri_dataset():
 
     orig_attrs = SampleAttributes(pathjoin(pymvpa_dataroot,
                                                'attributes_literal.txt'))
-    for subj, runs in task_runs.iteritems():
+    for subj, runs in task_runs.items():
         for run in runs:
             # load single run
             ds = of.get_bold_run_dataset(subj, task, run, flavor='1slice',
@@ -197,7 +197,7 @@ def _test_datalad_openfmri_dataset(d):
     assert('TR' in of.get_scan_properties())
     tasks = of.get_task_descriptions()
     assert(tasks)
-    task = tasks.keys()[0]
+    task = list(tasks.keys())[0]
     run_ids = of.get_bold_run_ids(sub_ids[0], task)
     assert(run_ids)
     task_runs = of.get_task_bold_run_ids(task)
@@ -207,7 +207,7 @@ def _test_datalad_openfmri_dataset(d):
     from datalad.auto import AutomagicIO
     with AutomagicIO():  # so necessary files get fetched if necessary
         # try loading first run for some task of the first subject
-        data = of.get_model_bold_dataset(model_ids[0], sub_ids[0], task_runs.values()[0][:1])
+        data = of.get_model_bold_dataset(model_ids[0], sub_ids[0], list(task_runs.values())[0][:1])
     assert(data.shape)
 
 

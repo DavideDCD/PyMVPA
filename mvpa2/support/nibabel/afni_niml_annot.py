@@ -25,7 +25,7 @@ def rawniml2annot(p):
     '''Converts raw NIML to annotation format'''
 
     if type(p) is list:
-        return map(rawniml2annot, p)
+        return list(map(rawniml2annot, p))
     r = dset.rawniml2dset(p)
 
     for nd in p['nodes']:
@@ -87,7 +87,7 @@ def _merge_indices_addition_values(idxs, last_index_function=np.max):
     if any(np.sum(idx < 0) for idx in idxs):
         raise ValueError("Unexpected negative values")
 
-    nidxs = map(last_index_function, idxs)
+    nidxs = list(map(last_index_function, idxs))
     last_indices = np.cumsum(nidxs)
 
     addition_values = []
@@ -108,27 +108,27 @@ def merge(annots):
                 annot['AFNI_labeltable']['data'],
                 annot['data'])
 
-    idxs, tables, datas = map(list, zip(*map(annot2idx_table_data, annots)))
+    idxs, tables, datas = list(map(list, list(zip(*list(map(annot2idx_table_data, annots))))))
 
     to_add_idx = _merge_indices_addition_values(idxs)
-    idx = np.vstack(idxs[i] + to_add_idx[i] for i in xrange(n))
+    idx = np.vstack(idxs[i] + to_add_idx[i] for i in range(n))
 
     # join the table
     ncols = len(tables[0])
     table = []
-    for i in xrange(ncols):
+    for i in range(ncols):
         columns = [d[i] for d in tables]
 
         if all(isinstance(d[i], np.ndarray) and \
                     np.issubdtype(m.dtype, np.int) for m in columns):
             to_add_table = _merge_indices_addition_values(columns)
 
-            for j in xrange(n):
+            for j in range(n):
                 columns[j] = columns[j] + to_add_table[j]
 
         table.append(np.hstack(columns))
 
-    data = np.vstack([datas[i] + to_add_table[i] for i in xrange(n)])
+    data = np.vstack([datas[i] + to_add_table[i] for i in range(n)])
 
     output = annots[0].copy()
     output['node_indices'] = idx
@@ -145,7 +145,7 @@ def write(fnout, niml_annot):
     fn = os.path.split(fnout)[1]
 
     if not type(fn) is str:
-        if not isinstance(fnout, basestring):
+        if not isinstance(fnout, str):
             raise ValueError("Filename %s should be string" % str)
         fn = str(fn) # ensure that unicode is converted to string
 

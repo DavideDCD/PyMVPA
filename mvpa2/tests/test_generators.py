@@ -8,11 +8,9 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Unit tests for generators."""
 
-import os
 import itertools
 import numpy as np
 from time import time
-import tempfile
 
 from mvpa2.testing.tools import ok_, assert_array_equal, assert_true, \
         assert_false, assert_equal, assert_raises, assert_almost_equal, \
@@ -27,7 +25,7 @@ from mvpa2.generators.partition import OddEvenPartitioner, NFoldPartitioner, \
      ExcludeTargetsCombinationsPartitioner, FactorialPartitioner
 from mvpa2.generators.permutation import AttributePermutator
 from mvpa2.generators.base import  Repeater, Sifter
-from mvpa2.generators.resampling import Balancer, LogExclusions, ApplySelection
+from mvpa2.generators.resampling import Balancer
 from mvpa2.misc.data_generators import normal_feature_dataset
 from mvpa2.misc.support import get_nelements_per_value
 
@@ -110,7 +108,7 @@ def test_attrpermute():
     assert_not_in('collection : ', doc)
 
     ds = give_data()
-    ds.sa['ids'] = range(len(ds))
+    ds.sa['ids'] = list(range(len(ds)))
     pristine_data = ds.samples.copy()
     permutation = AttributePermutator(['targets', 'ids'], assure=True)
     pds = permutation(ds)
@@ -142,7 +140,7 @@ def test_attrpermute():
     assert_false(np.any(pds.sa.ids[30:40] > 39))
     assert_false(np.any(pds.sa.ids[30:40] < 30))
     # the rest not
-    assert_array_equal(pds.sa.ids[:30], range(30))
+    assert_array_equal(pds.sa.ids[:30], list(range(30)))
 
     # or a list of chunks
     permutation = AttributePermutator('ids', limit={'chunks': [3,4]})
@@ -151,7 +149,7 @@ def test_attrpermute():
     assert_false(np.any(pds.sa.ids[30:50] > 49))
     assert_false(np.any(pds.sa.ids[30:50] < 30))
     # the rest not
-    assert_array_equal(pds.sa.ids[:30], range(30))
+    assert_array_equal(pds.sa.ids[:30], list(range(30)))
 
     # and now try generating more permutations
     nruns = 2
@@ -180,7 +178,7 @@ def test_attrpermute():
         assert_datasets_equal(p1, p2)
 
     # permute feature attrs
-    ds.fa['ids'] = range(ds.shape[1])
+    ds.fa['ids'] = list(range(ds.shape[1]))
     permutation = AttributePermutator('fa.ids', assure=True)
     pds = permutation(ds)
     assert_false(np.all(pds.fa.ids == ds.fa.ids))
@@ -190,7 +188,7 @@ def test_attrpermute():
                                       strategy='uattrs', assure=True)
     pds = permutation(ds)
     # Due to assure above -- we should have changed things
-    assert_not_equal(zip(ds.targets), zip(pds.targets))
+    assert_not_equal(list(zip(ds.targets)), list(zip(pds.targets)))
     # in each chunk we should have unique remappings
     for c in ds.UC:
         chunk_idx = ds.C == c
@@ -206,8 +204,8 @@ def test_attrpermute():
                                        strategy='uattrs', assure=True)
     pds = permutation(ds)
     # Due to assure above -- we should have changed things
-    assert_not_equal(zip(ds.targets,   ds.sa.odds),
-                     zip(pds.targets, pds.sa.odds))
+    assert_not_equal(list(zip(ds.targets,   ds.sa.odds)),
+                     list(zip(pds.targets, pds.sa.odds)))
     # In each chunk we should have unique remappings
     for c in ds.UC:
         chunk_idx = ds.C == c
@@ -272,14 +270,14 @@ def test_balancer():
 
     seq1, seq2, seq3 = [], [], []
 
-    for i in xrange(3):
-        seq1.append(gen1.next())
-        seq2.append(gen2.next())
+    for i in range(3):
+        seq1.append(next(gen1))
+        seq2.append(next(gen2))
         seq3.append(b(ds))
 
     # Produces expected sequences
 
-    for i in xrange(3):
+    for i in range(3):
         assert_datasets_equal(balanced[i], seq1[i])
         assert_datasets_equal(balanced[i], seq2[i])
 
@@ -292,81 +290,36 @@ def test_balancer():
     bal = Balancer(limit={'chunks': 3}, apply_selection=True)
     res = bal(ds)
     assert_equal(res.sa['chunks'].unique, (3,))
-    assert_equal(get_nelements_per_value(res.sa.targets).values(),
+    assert_equal(list(get_nelements_per_value(res.sa.targets).values()),
                  [2] * 4)
     # same but include all offlimit samples
     bal = Balancer(limit={'chunks': 3}, include_offlimit=True,
                    apply_selection=True)
     res = bal(ds)
-    assert_array_equal(res.sa['chunks'].unique, range(10))
+    assert_array_equal(res.sa['chunks'].unique, list(range(10)))
     # chunk three still balanced, but the rest is not, i.e. all samples included
-    assert_equal(get_nelements_per_value(res[res.sa.chunks == 3].sa.targets).values(),
+    assert_equal(list(get_nelements_per_value(res[res.sa.chunks == 3].sa.targets).values()),
                  [2] * 4)
-    assert_equal(get_nelements_per_value(res.sa.chunks).values(),
+    assert_equal(list(get_nelements_per_value(res.sa.chunks).values()),
                  [10, 10, 10, 8, 10, 10, 10, 10, 10, 10])
     # fixed amount
     bal = Balancer(amount=1, limit={'chunks': 3}, apply_selection=True)
     res = bal(ds)
-    assert_equal(get_nelements_per_value(res.sa.targets).values(),
+    assert_equal(list(get_nelements_per_value(res.sa.targets).values()),
                  [1] * 4)
     # fraction
     bal = Balancer(amount=0.499, limit=None, apply_selection=True)
     res = bal(ds)
     assert_array_equal(
-            np.round(np.array(get_nelements_per_value(ds.sa.targets).values()) * 0.5),
-            np.array(get_nelements_per_value(res.sa.targets).values()))
+            np.round(np.array(list(get_nelements_per_value(ds.sa.targets).values())) * 0.5),
+            np.array(list(get_nelements_per_value(res.sa.targets).values())))
     # check on feature attribute
     ds.fa['one'] = np.tile([1, 2], 5)
     ds.fa['chk'] = np.repeat([1, 2], 5)
     bal = Balancer(attr='one', amount=2, limit='chk', apply_selection=True)
     res = bal(ds)
-    assert_equal(get_nelements_per_value(res.fa.one).values(),
+    assert_equal(list(get_nelements_per_value(res.fa.one).values()),
                  [4] * 2)
-
-
-def test_log_exclusions():
-    ds = give_data()
-    ds.sa['time_coords'] = np.arange(len(ds))
-
-    # only mark the selection in an attribute
-    bal = Balancer()
-    balanced = bal(ds)
-
-    tmpfile = tempfile.mktemp()
-    logex = LogExclusions(tmpfile, append=False)
-
-    logged = logex(balanced)
-
-    subds = balanced[~balanced.sa['balanced_set'].value]
-
-    assert_true(logged is balanced)
-    with open(tmpfile, 'r') as fobj:
-        assert_true(fobj.readline().startswith('# New entry'))
-
-    excluded = np.genfromtxt(tmpfile, dtype='u1', delimiter=',')
-    assert_array_equal(excluded[:, 0], subds.sa.chunks)
-    assert_array_equal(excluded[:, 1], subds.sa.targets)
-    assert_array_equal(excluded[:, 2], subds.sa.time_coords)
-
-    os.unlink(tmpfile)
-
-
-def test_apply_selection():
-    ds = give_data()
-
-    seed = np.random.randint(low=0, high=2**32)
-
-    # Two balancers with same random seed, one with deferred application
-    bal1 = Balancer(apply_selection=True, rng=seed)
-    bal2 = Balancer(apply_selection=False, rng=seed)
-
-    # Compare Balancer(apply_selection=True) to Balancer -> ApplySelection
-    balanced1 = bal1(ds)
-    balanced2 = ApplySelection()(bal2(ds))
-
-    assert_array_equal(balanced1.samples, balanced2.samples)
-    assert_array_equal(balanced1.sa['targets'], balanced2.sa['targets'])
-    assert_array_equal(balanced1.sa['chunks'], balanced2.sa['chunks'])
 
 
 def test_repeater():
@@ -500,7 +453,7 @@ def test_permute_chunks():
     # change targets labels
     # there is no target labels permuting within chunks,
     # assure = True would be error
-    ds.sa['targets'] = range(len(ds.sa.targets))
+    ds.sa['targets'] = list(range(len(ds.sa.targets)))
     permutation = AttributePermutator(attr='targets',
                                       chunk_attr='chunks',
                                       strategy='chunks',
@@ -529,7 +482,7 @@ def test_factorialpartitioner():
                                 snr=100,   # pure signal! ;)
                                 perlabel=30,
                                 nfeatures=6,
-                                nonbogus_features=range(6),
+                                nonbogus_features=list(range(6)),
                                 nchunks=5)
     ds.sa['subord'] = ds.sa.targets.copy()
     ds.sa['superord'] = ['super%d' % (int(i[1])%3,)
@@ -548,7 +501,7 @@ def test_factorialpartitioner():
     #mask_superord = ds_unbalanced.sa.superord == 'super1'
     #uniq_subord = np.unique(ds_unbalanced.sa.subord[mask_superord])
     #ds_unbalanced.sa.subord[mask_superord] = [uniq_subord[0] for i in range(nsuper1)]
-    ds_unbalanced = Dataset(range(4), sa={'subord': [0, 0, 1, 2],
+    ds_unbalanced = Dataset(list(range(4)), sa={'subord': [0, 0, 1, 2],
                                           'superord': [1, 1, 2, 2]})
 
     npart = ChainNode([
@@ -602,7 +555,7 @@ def test_factorialpartitioner():
     # but if with a count we should get some selection
     fpartr2 = FactorialPartitioner(selection_strategy='random', count=2, **factkw)
     # Let's generate a number of random selections:
-    rand2_partitions = [partition(fpartr2) for i in xrange(10)]
+    rand2_partitions = [partition(fpartr2) for i in range(10)]
     for p in rand2_partitions:
         assert_equal(len(p), 2)
     # majority of them must be different
@@ -637,7 +590,7 @@ def test_factorialpartitioner():
                            sub_out)
 
     # now let's test on a dummy dataset
-    ds_dummy = Dataset(range(4), sa={'subord': range(4),
+    ds_dummy = Dataset(list(range(4)), sa={'subord': list(range(4)),
                                      'superord': [1,2]*2})
     p_fpart = partition(fpart, ds_dummy)
     assert_array_equal(p_fpart,

@@ -126,9 +126,9 @@ def rank_order(x, reverse=False):
     t_indexes = indexes
     if not reverse:
         t_indexes = indexes[::-1]
-    tosort = zip(x, indexes)
+    tosort = list(zip(x, indexes))
     tosort.sort()
-    ztosort = zip(tosort, t_indexes)
+    ztosort = list(zip(tosort, t_indexes))
     rankorder = np.empty(nelements, dtype=int)
     rankorder[ [x[0][1] for x in ztosort] ] = \
                [x[1] for x in ztosort]
@@ -159,7 +159,7 @@ class OverAxis(object):
         self.transformer = transformer
         # sanity check
         if not (axis is None or isinstance(axis, int)):
-            raise ValueError, "axis must be specified by integer"
+            raise ValueError("axis must be specified by integer")
         self.axis = axis
 
 
@@ -172,8 +172,8 @@ class OverAxis(object):
         x = np.asanyarray(x)
         shape = x.shape
         if axis >= len(shape):
-            raise ValueError, "Axis given in constructor %d is higher " \
-                  "than dimensionality of the data of shape %s" % (axis, shape)
+            raise ValueError("Axis given in constructor %d is higher " \
+                  "than dimensionality of the data of shape %s" % (axis, shape))
 
         # WRONG! ;-)
         #for ind in xrange(shape[axis]):
@@ -201,7 +201,7 @@ class OverAxis(object):
                     results = np.empty(x.shape, dtype=x.dtype)
                     shrinker = False
                 else:
-                    raise RuntimeError, 'Not handled by OverAxis kind of transformer'
+                    raise RuntimeError('Not handled by OverAxis kind of transformer')
 
             if shrinker:
                 results[index_sweep] = x_t
@@ -247,8 +247,8 @@ class DistPValue(ClassWithCollections):
 
         self.sd = sd
         if not (distribution in ['rdist']):
-            raise ValueError, "Actually only rdist supported at the moment" \
-                  " got %s" % distribution
+            raise ValueError("Actually only rdist supported at the moment" \
+                  " got %s" % distribution)
         self.distribution = distribution
         self.fpp = fpp
         self.nbins = nbins
@@ -276,8 +276,7 @@ class DistPValue(ClassWithCollections):
 
         # XXX May be just utilize OverAxis transformer?
         if ndims > 2:
-            raise NotImplementedError, \
-                  "TODO: add support for more than 2 dimensions"
+            raise NotImplementedError("TODO: add support for more than 2 dimensions")
         elif ndims == 1:
             x, sd = x[:, np.newaxis], 0
 

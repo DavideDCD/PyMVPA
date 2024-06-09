@@ -10,7 +10,7 @@
 
 from mvpa2.testing import eq_
 
-from StringIO import StringIO
+from io import StringIO
 
 from mvpa2.datasets.sources.bids import load_events
 

@@ -101,7 +101,7 @@ class StatsTests(unittest.TestCase):
 
         # check for p-value attrs
         if externals.exists('scipy'):
-            assert_true('fprob' in a.fa.keys())
+            assert_true('fprob' in list(a.fa.keys()))
             assert_equal(len(ac.fa), len(ac))
 
         ds = datasets['uni4large']
@@ -128,8 +128,8 @@ class StatsTests(unittest.TestCase):
         ny = y.shape[1]
 
         c_np = np.zeros((nx, ny))
-        for k in xrange(nx):
-            for j in xrange(ny):
+        for k in range(nx):
+            for j in range(ny):
                 c_np[k, j] = np.corrcoef(x[:, k], y[:, j])[0, 1]
 
         c = pearson_correlation(x, y)
@@ -139,7 +139,7 @@ class StatsTests(unittest.TestCase):
 def test_tsboxplot():
     skip_if_no_external('scipy')
     skip_if_no_external('numpy', min_version='1.5') # for .percentile. approx version
-    ts = range(5)
+    ts = list(range(5))
     assert_raises(ValueError, compute_ts_boxplot_stats, ts)
     assert_raises(ValueError, compute_ts_boxplot_stats, [ts])
     stats, outlier = compute_ts_boxplot_stats(([ts, ts]))

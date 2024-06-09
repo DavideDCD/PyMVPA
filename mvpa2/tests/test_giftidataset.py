@@ -14,7 +14,7 @@ from mvpa2.testing import SkipTest
 if not externals.exists('nibabel'):
     raise SkipTest
 
-from nibabel import loadsave as nb_loadsave
+from nibabel.gifti import giftiio as nb_giftiio
 from nibabel.gifti import gifti as nb_gifti
 from nibabel.nifti1 import intent_codes, data_type_codes
 
@@ -142,7 +142,7 @@ def test_gifti_dataset(fn, format_, include_nodes):
 
     expected_ds_sa = expected_ds.copy(deep=True)
     expected_ds_sa.sa['chunks'] = [4, 3, 2, 1, 3, 2]
-    expected_ds_sa.sa['targets'] = ['t%d' % i for i in xrange(6)]
+    expected_ds_sa.sa['targets'] = ['t%d' % i for i in range(6)]
 
     # build GIFTI file from scratch
     gifti_string = _build_gifti_string(format_, include_nodes)
@@ -154,12 +154,12 @@ def test_gifti_dataset(fn, format_, include_nodes):
     assert_datasets_almost_equal(ds, expected_ds)
 
     # test GiftiImage input
-    img = nb_loadsave.load(fn)
+    img = nb_giftiio.read(fn)
     ds2 = gifti_dataset(img)
     assert_datasets_almost_equal(ds2, expected_ds)
 
     # test using Nibabel's output from write
-    nb_loadsave.save(img, fn)
+    nb_giftiio.write(img, fn)
     ds3 = gifti_dataset(fn)
     assert_datasets_almost_equal(ds3, expected_ds)
 
@@ -203,7 +203,7 @@ def test_gifti_dataset(fn, format_, include_nodes):
         narrays = nsamples
 
     assert_equal(len(img.darrays), narrays)
-    for i in xrange(nsamples):
+    for i in range(nsamples):
         arr = img2.darrays[i + first_data_array_pos]
 
         # check intent code
@@ -269,8 +269,8 @@ def test_gifti_dataset_with_anatomical_surface(fn, format_, include_nodes):
     ds = _get_test_dataset(include_nodes)
 
     nsamples, nfeatures = ds.shape
-    vertices = np.round(np.random.normal(size=(nfeatures, 3)), decimals=5)
-    faces = np.asarray([i + np.arange(3) for i in xrange(2 * nfeatures)]) % nfeatures
+    vertices = np.random.normal(size=(nfeatures, 3))
+    faces = np.asarray([i + np.arange(3) for i in range(2 * nfeatures)]) % nfeatures
     surf = Surface(vertices, faces)
 
     img = map2gifti(ds, surface=surf)

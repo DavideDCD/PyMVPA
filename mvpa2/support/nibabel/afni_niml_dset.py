@@ -60,7 +60,7 @@ def _string2list(s, SEP=";", warn_if_no_string=True):
 
 def rawniml2dset(p):
     if type(p) is list:
-        return map(rawniml2dset, p)
+        return list(map(rawniml2dset, p))
 
     assert type(p) is dict and all([f in p for f in ['dset_type', 'nodes']]), p
     #assert type(p) is dict and all([f in p for f in ['nodes']]), p
@@ -155,7 +155,7 @@ def _dset2rawniml_nodeidxs(s):
         if v is None:
             return None
         n = len(v)
-        return n == 0 or all(v[i] <= v[i + 1] for i in xrange(n - 1))
+        return n == 0 or all(v[i] <= v[i + 1] for i in range(n - 1))
 
     return dict(data_type='Node_Bucket_node_indices',
                 name='INDEX_LIST',
@@ -171,7 +171,7 @@ def _dset2rawniml_datarange(s):
 
         f = types.numpy_data2printer(data) # formatter function
         r = []
-        for i in xrange(len(minpos)):
+        for i in range(len(minpos)):
             mnpos = minpos[i]
             mxpos = maxpos[i]
             r.append('%s %s %d %d' % (f(data[mnpos, i]), f(data[mxpos, i]), mnpos, mxpos))
@@ -188,7 +188,7 @@ def _dset2rawniml_labels(s):
 
     labels = s.get('labels', None)
     if labels is None:
-        labels = ['col_%d' % i for i in xrange(ncols)]
+        labels = ['col_%d' % i for i in range(ncols)]
     elif type(labels) != list:
         labels = list(labels)
     if len(labels) != ncols:
@@ -236,7 +236,7 @@ def _dset2rawniml_stats(s):
 def _dset2rawniml_anything_else(s):
     ignore_keys = ['data', 'stats', 'labels', 'history', 'dset_type', 'node_indices']
 
-    ks = s.keys()
+    ks = list(s.keys())
     niml = []
     for k in ks:
         if k in ignore_keys:
@@ -266,7 +266,7 @@ def _dset2rawniml_complete(r):
             r['data'] = list(r['data'])
 
         elif tp is list:
-            if all(isinstance(d, basestring)  for d in data):
+            if all(isinstance(d, str)  for d in data):
                 r['data'] = ";".join(data)
             else:
                 tp = 'mixed'
@@ -283,9 +283,9 @@ def _dset2rawniml_complete(r):
         r['ni_dimen'] = str(nrows)
         tpstrs = []
         for d in data:
-            if isinstance(d, basestring) or \
+            if isinstance(d, str) or \
                     (type(d) is list and
-                            all(isinstance(di, basestring) for di in d)):
+                            all(isinstance(di, str) for di in d)):
                 tpstr = 'String'
             elif isinstance(d, np.ndarray):
                 tpstr = types.numpy_type2name(d.dtype)
@@ -294,7 +294,7 @@ def _dset2rawniml_complete(r):
             tpstrs.append(tpstr)
         r['ni_type'] = ','.join(tpstrs)
 
-    elif issubclass(tp, basestring):
+    elif issubclass(tp, str):
         r['ni_dimen'] = '1'
         r['ni_type'] = 'String'
     elif tp is np.ndarray:
@@ -328,13 +328,13 @@ def _remove_empty_nodes(nodes):
             else:
                 i += 1
     elif tp is dict:
-        for v in nodes.itervalues():
+        for v in nodes.values():
             _remove_empty_nodes(v)
 
 
 def dset2rawniml(s):
     if type(s) is list:
-        return map(dset2rawniml, s)
+        return list(map(dset2rawniml, s))
     elif type(s) is np.ndarray:
         s = dict(data=s)
 
@@ -353,7 +353,7 @@ def dset2rawniml(s):
     nodes = [_dset2rawniml_complete(build(s)) for build in builders]
     _remove_empty_nodes(nodes)
 
-    more_nodes = filter(lambda x: x is not None, _dset2rawniml_anything_else(s))
+    more_nodes = [x for x in _dset2rawniml_anything_else(s) if x is not None]
 
     r['nodes'] = nodes + more_nodes
     return r
@@ -365,7 +365,7 @@ def write(fnout, dset, form='binary'):
     fn = os.path.split(fnout)[1]
 
     if not type(fn) is str:
-        if not isinstance(fnout, basestring):
+        if not isinstance(fnout, str):
             raise ValueError("Filename %s should be string" % str)
         fn = str(fn) # ensure that unicode is converted to string
 
@@ -441,7 +441,7 @@ def sparse2full(dset, pad_to_ico_ld=None, pad_to_node=None,
 def from_any(s, itemifsingletonlist=True):
     if isinstance(s, dict) and 'data' in s:
         return s
-    elif isinstance(s, basestring):
+    elif isinstance(s, str):
         return read(s, itemifsingletonlist)
     elif isinstance(s, np.ndarray):
         return dict(data=s)
@@ -514,7 +514,7 @@ def ttest(dsets, sa_labels=None, return_values='mt',
                     sa_labels = dset['labels']
                     dset_labels = sa_labels
                 else:
-                    sa_labels = range(sh[1])
+                    sa_labels = list(range(sh[1]))
                     dset_labels = ['%d' % j for j in sa_labels]
             else:
                 dset_labels = sa_labels

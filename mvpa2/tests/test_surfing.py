@@ -9,6 +9,7 @@
 """Unit tests for PyMVPA surface searchlight and related utilities"""
 
 from mvpa2.testing import *
+from functools import reduce
 skip_if_no_external('nibabel')
 
 import numpy as np
@@ -86,7 +87,7 @@ class SurfTests(unittest.TestCase):
 
         eps = .0001
         for cmap, f in vf_checks:
-            for k, v in cmap.iteritems():
+            for k, v in cmap.items():
                 surfval = f(s)[k, :]
                 assert_true((abs(surfval - v) < eps).all())
 
@@ -120,12 +121,12 @@ class SurfTests(unittest.TestCase):
             see https://ci.appveyor.com/project/conda-forge/pymvpa2-feedstock/build/job/14bud4pirwo2p3np
             """)
         partmap = {7: 141, 8: 144, 9: 148, 10: 153, 11: 157, 12: 281}
-        for k, v in partmap.iteritems():
+        for k, v in partmap.items():
             assert_true(low2high[k] == v)
 
         # ensure that slow implementation gives same results as fast one
         low2high_slow = s.map_to_high_resolution_surf(h, .1)
-        for k, v in low2high.iteritems():
+        for k, v in low2high.items():
             assert_true(low2high_slow[k] == v)
 
         #  should fail if epsilon is too small
@@ -133,7 +134,7 @@ class SurfTests(unittest.TestCase):
                       lambda x:x.map_to_high_resolution_surf(h, .01), s)
 
         n2f = s.node2faces
-        for i in xrange(s.nvertices):
+        for i in range(s.nvertices):
             nf = [10] if i < 2 else [5, 6]  # number of faces expected
 
             assert_true(len(n2f[i]) in nf)
@@ -145,7 +146,7 @@ class SurfTests(unittest.TestCase):
                  99: 3.32854360, 100: 3.328543604, 101: 3.3285436042}
 
         eps = np.finfo('f').eps
-        for k, v in some_ds.iteritems():
+        for k, v in some_ds.items():
             assert_true(abs(v - ds2[k]) < eps)
 
         # test I/O (through ascii files)
@@ -232,7 +233,7 @@ class SurfTests(unittest.TestCase):
                 v_n = surf.normalized(v)
 
                 n_vecs=v.shape[1]
-                for i in xrange(n_vecs):
+                for i in range(n_vecs):
                     v_n_i=helper_test_vec_normalized(v[i,:])
                     assert_array_almost_equal(v_n_i, v_n[i,:])
 
@@ -293,7 +294,7 @@ class SurfTests(unittest.TestCase):
                             (17, 71, 37, 73): (True, True),
                            (2, 2, 2): (False, False)}
 
-        for other_sz, (eq_shape, eq_nvoxels) in eq_shape_nvoxels.iteritems():
+        for other_sz, (eq_shape, eq_nvoxels) in eq_shape_nvoxels.items():
             other_vg = volgeom.VolGeom(other_sz, mx)
             assert_equal(other_vg.same_shape(vg), eq_shape)
             assert_equal(other_vg.nvoxels_mask == vg.nvoxels_mask, eq_nvoxels)
@@ -339,7 +340,7 @@ class SurfTests(unittest.TestCase):
         identities_input = [1, 2, 2, 0, 1, 0, 2, 0]
 
         # voxel indices to test
-        linrange = [0, 1, sz[2], sz[1] * sz[2]] + range(0, nv, nv // 100)
+        linrange = [0, 1, sz[2], sz[1] * sz[2]] + list(range(0, nv, nv // 100))
 
         lin = np.reshape(np.asarray(linrange), (-1,))
         ijk = vg.lin2ijk(lin)
@@ -400,7 +401,7 @@ class SurfTests(unittest.TestCase):
         sh = vg.shape
 
         # mask a subset of the voxels
-        rng = range(0, sh[0], maskstep)
+        rng = list(range(0, sh[0], maskstep))
         for i in rng:
             for j in rng:
                 for k in rng:
@@ -418,7 +419,7 @@ class SurfTests(unittest.TestCase):
         assert_equal(vg.nvoxels, vg.nvoxels_mask * maskstep ** 3)
         assert_equal(vg_dset, vg)
 
-        dilates = range(0, 8, 2)
+        dilates = list(range(0, 8, 2))
         nvoxels_masks = []  # keep track of number of voxels for each size
         for dilate in dilates:
             covers_full_volume = dilate * 2 >= maskstep * 3 ** .5 + 1
@@ -480,8 +481,8 @@ class SurfTests(unittest.TestCase):
             assert_equal(expected_keys, set(n2v.keys()))
 
             counter = 0
-            for k, v2pos in n2v.iteritems():
-                for v, pos in v2pos.iteritems():
+            for k, v2pos in n2v.items():
+                for v, pos in v2pos.items():
                     # should be close to grey matter
 
                     assert_true(-1. <= pos <= 2.)
@@ -526,7 +527,7 @@ class SurfTests(unittest.TestCase):
         # also tests the outside_node_margin feature
         sh = (10, 10, 10)
         msk = np.zeros(sh)
-        for i in xrange(0, sh[0], 2):
+        for i in range(0, sh[0], 2):
             msk[i, :, :] = 1
 
         vol_affine = np.identity(4)
@@ -551,13 +552,13 @@ class SurfTests(unittest.TestCase):
             sel = surf_voxel_selection.run_voxel_selection(radius, vg, inner,
                                 outer, outside_node_margin=outside_node_margin)
             assert_equal(intermediate, sel.source)
-            assert_equal(len(sel.keys()), expected_center_count[k])
+            assert_equal(len(list(sel.keys())), expected_center_count[k])
             assert_true(set(sel.aux_keys()).issubset(set(['center_distances',
                                                     'grey_matter_position'])))
 
             msk_lin = msk.ravel()
             sel_msk_lin = sel.get_mask().ravel()
-            for i in xrange(vg.nvoxels):
+            for i in range(vg.nvoxels):
                 if msk_lin[i]:
                     src = sel.target2nearest_source(i)
                     assert_false((src is None) ^ (sel_msk_lin[i] == 0))
@@ -641,7 +642,7 @@ class SurfTests(unittest.TestCase):
         tested_double_features = False
         for param in params:
             distance_metric, radius, ncenters = param
-            srcs = range(0, nv, nv // (ncenters or nv))
+            srcs = list(range(0, nv, nv // (ncenters or nv)))
             sel = surf_voxel_selection.voxel_selection(vs, radius,
                                             source_surf_nodes=srcs,
                                             distance_metric=distance_metric)
@@ -651,7 +652,7 @@ class SurfTests(unittest.TestCase):
             datalin = np.zeros((vg.nvoxels, 1))
 
             mp = sel
-            for k, idxs in mp.iteritems():
+            for k, idxs in mp.items():
                 if idxs is not None:
                     datalin[idxs] = 1
 
@@ -665,7 +666,7 @@ class SurfTests(unittest.TestCase):
                 # see if voxels containing inner and outer
                 # nodes were selected
                 for sf in [inner, outer]:
-                    for k, idxs in mp.iteritems():
+                    for k, idxs in mp.items():
                         xyz = np.reshape(sf.vertices[k, :], (1, 3))
                         linidx = vg.xyz2lin(xyz)
 
@@ -735,7 +736,7 @@ class SurfTests(unittest.TestCase):
                 for selcmp, ratio in sel3cmp_difference_ratio:
                     nunion = ndiff = 0
 
-                    for k in selcmp.keys():
+                    for k in list(selcmp.keys()):
                         p = set(sel3.get(k))
                         q = set(selcmp.get(k))
                         nunion += len(p.union(q))
@@ -748,7 +749,7 @@ class SurfTests(unittest.TestCase):
                 # as implemented by Yarik
 
                 mask = sel.get_mask()
-                keys = None if ncenters is None else sel.keys()
+                keys = None if ncenters is None else list(sel.keys())
 
                 dset_data = np.reshape(np.arange(vg.nvoxels), vg.shape)
                 dset_img = nb.Nifti1Image(dset_data, vg.affine)
@@ -779,7 +780,7 @@ class SurfTests(unittest.TestCase):
                     # check that number of selected voxels matches
                     assert_equal(selected_count[i], len(mp[k]))
 
-                assert_equal(searchlight.ca.roi_center_ids, sel.keys())
+                assert_equal(searchlight.ca.roi_center_ids, list(sel.keys()))
 
                 assert_array_equal(sl_dset.fa['center_ids'], qe.ids)
 
@@ -806,7 +807,7 @@ class SurfTests(unittest.TestCase):
                     dset_ = hstack((dset1, dset2), 'drop_nonunique')
                     dset_.sa = dset1.sa
                     # dset_.a.imghdr = dset1.a.imghdr
-                    assert_true('imghdr' in dset_.a.keys())
+                    assert_true('imghdr' in list(dset_.a.keys()))
                     assert_equal(dset_.a['imghdr'].value, dset1.a['imghdr'].value)
                     roi_feature_ids = searchlight.ca.roi_feature_ids
                     sl_dset_ = searchlight(dset_)
@@ -832,7 +833,7 @@ class SurfTests(unittest.TestCase):
     def test_h5support(self):
         sh = (20, 20, 20)
         msk = np.zeros(sh)
-        for i in xrange(0, sh[0], 2):
+        for i in range(0, sh[0], 2):
             msk[i, :, :] = 1
         vg = volgeom.VolGeom(sh, np.identity(4), mask=msk)
 
@@ -873,7 +874,7 @@ class SurfTests(unittest.TestCase):
         # make a small dataset with a mask
         sh = (10, 10, 10)
         msk = np.zeros(sh)
-        for i in xrange(0, sh[0], 2):
+        for i in range(0, sh[0], 2):
             msk[i, :, :] = 1
         vg = volgeom.VolGeom(sh, np.identity(4), mask=msk)
 
@@ -1050,7 +1051,7 @@ class SurfTests(unittest.TestCase):
                 assert_equal(set(feature_ids), set(fa_indices))
 
     def test_surf_pairs(self):
-        o, x, y = map(np.asarray, [(0, 0, 0), (0, 1, 0), (1, 0, 0)])
+        o, x, y = list(map(np.asarray, [(0, 0, 0), (0, 1, 0), (1, 0, 0)]))
         d = np.asarray((0, 0, .1))
         n = 10
         s1 = surf.generate_plane(o, x, y, n, n)
@@ -1060,14 +1061,14 @@ class SurfTests(unittest.TestCase):
         # try for small surface
         eps = .0000001
         pw = s.pairwise_near_nodes(.5)
-        for i in xrange(n ** 2):
+        for i in range(n ** 2):
             d = pw.pop((i, i + 100))
             assert_array_almost_equal(d, .1)
 
         assert_true(len(pw) == 0)
 
         pw = s.pairwise_near_nodes(.5)
-        for i in xrange(n ** 2):
+        for i in range(n ** 2):
             d = pw.pop((i, i + 100))
             assert_array_almost_equal(d, .1)
 
@@ -1075,7 +1076,7 @@ class SurfTests(unittest.TestCase):
 
         # bigger one
         pw = s.pairwise_near_nodes(1.4)
-        for i in xrange(n ** 2):
+        for i in range(n ** 2):
             p, q = i // n, i % n
             offsets = sum(([] if q == 0 else [-1],
                          [] if q == n - 1 else [+1],

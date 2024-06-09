@@ -31,7 +31,7 @@ def test_wtf(filename):
     wtf(filename)
     try:
         sinfo_from_file = '\n'.join(open(filename, 'r').readlines())
-    except Exception, e:
+    except Exception as e:
         raise AssertionError(
             'Testing of loading from a stored a file has failed: %r'
             % (e,))

@@ -25,7 +25,7 @@ class PerturbationSensitivityAnalyzerTests(unittest.TestCase):
         data = np.random.standard_normal(( 100, 3, 4, 2 ))
         labels = np.concatenate( ( np.repeat( 0, 50 ),
                                   np.repeat( 1, 50 ) ) )
-        chunks = np.repeat( range(5), 10 )
+        chunks = np.repeat( list(range(5)), 10 )
         chunks = np.concatenate( (chunks, chunks) )
         mask = np.ones( (3, 4, 2), dtype='bool')
         mask[0,0,0] = 0

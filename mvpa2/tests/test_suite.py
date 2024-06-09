@@ -21,8 +21,8 @@ class SuiteTest(unittest.TestCase):
         """Test if we are loading fine
         """
         try:
-            exec "from mvpa2.suite import *"
-        except Exception, e: # pragma: no cover - should not be hit if ok_
+            exec("from mvpa2.suite import *")
+        except Exception as e: # pragma: no cover - should not be hit if ok_
             self.fail(msg="Cannot import everything from mvpa2.suite: %s" % e)
 
     def test_docstrings(self):
@@ -46,7 +46,7 @@ class SuiteTest(unittest.TestCase):
             missing1 = []
             conflicting1 = []
             self.assertTrue(gs[c])
-            for k, i in gs[c].iteritems():
+            for k, i in gs[c].items():
                 try:
                     s = i.__doc__.strip()
                 except: # pragma: no cover - should not be hit if ok_

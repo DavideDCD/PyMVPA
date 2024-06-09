@@ -100,7 +100,7 @@ def _get_superord_dataset():
                                 snr=100,  # pure signal! ;)
                                 perlabel=30,
                                 nfeatures=6,
-                                nonbogus_features=range(6),
+                                nonbogus_features=list(range(6)),
                                 nchunks=5)
     ds.sa['subord'] = ds.sa.targets.copy()
     ds.sa['superord'] = ['super%d' % (int(i[1]) % 3,)
@@ -287,7 +287,7 @@ def test_multiclass_pairs_svm_searchlight():
 
     # redefine C,T so we have a multiclass task
     nsamples = len(ds)
-    ds.sa.targets = range(ntargets) * (nsamples//ntargets)
+    ds.sa.targets = list(range(ntargets)) * (nsamples//ntargets)
     ds.sa.chunks = np.arange(nsamples) // ntargets
     # and add some obvious signal where it is due
     ds.samples[:, 55] += 15*ds.sa.targets   # for all 4 targets
@@ -373,7 +373,7 @@ def test_rfe_sensmap():
                                  snr=1, # 100,   # pure signal! ;)
                                  perlabel=9,
                                  nfeatures=6,
-                                 nonbogus_features=range(3),
+                                 nonbogus_features=list(range(3)),
                                  nchunks=3)
     clfsvm = LinearCSVMC()
 
@@ -487,9 +487,9 @@ def test_searchlight_errors_per_trial():
     # verify that partitioning was done correctly
     partitions = list(part.generate(dataset))
     for res in (results, results_gnbsl):
-        assert('targets' in res.sa.keys())  # should carry targets
-        assert('cvfolds' in res.sa.keys())  # should carry cvfolds
-        for ipart in xrange(len(partitions)):
+        assert('targets' in list(res.sa.keys()))  # should carry targets
+        assert('cvfolds' in list(res.sa.keys()))  # should carry cvfolds
+        for ipart in range(len(partitions)):
             assert_array_equal(dataset[partitions[ipart].sa.partitions == 2].targets,
                                res.sa.targets[res.sa.cvfolds == ipart])
 

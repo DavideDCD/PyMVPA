@@ -22,7 +22,7 @@ class VProperty(object):
         for attr in ('fget', 'fset'):
             func = locals()[attr]
             if callable(func):
-                setattr(self, attr, func.func_name)
+                setattr(self, attr, func.__name__)
         setattr(self, '__doc__', doc)
 
     def __get__(self, obj=None, type=None):

@@ -30,7 +30,7 @@ def test_mapper_vs_zscore():
         dataset_wizard(np.concatenate(
             [np.arange(40) for i in range(20)]).reshape(20,-1).T,
                 targets=1, chunks=1),
-        ] + datasets.values()
+        ] + list(datasets.values())
 
     for ds in dss:
         ds1 = deepcopy(ds)
@@ -73,7 +73,7 @@ def test_zscore():
     # dataset: mean=2, std=1
     samples = np.array((0, 1, 3, 4, 2, 2, 3, 1, 1, 3, 3, 1, 2, 2, 2, 2)).\
         reshape((16, 1))
-    data = dataset_wizard(samples.copy(), targets=range(16), chunks=[0] * 16)
+    data = dataset_wizard(samples.copy(), targets=list(range(16)), chunks=[0] * 16)
     assert_equal(data.samples.mean(), 2.0)
     assert_equal(data.samples.std(), 1.0)
     data_samples = data.samples.copy()
@@ -95,7 +95,7 @@ def test_zscore():
                     dtype='float64').reshape(16, 1)
     assert_array_equal(data.samples, check)
 
-    data = dataset_wizard(samples.copy(), targets=range(16), chunks=[0] * 16)
+    data = dataset_wizard(samples.copy(), targets=list(range(16)), chunks=[0] * 16)
     zscore(data, chunks_attr=None)
     assert_array_equal(data.samples, check)
 
@@ -132,8 +132,8 @@ def test_zscore():
     # zscore target
     check = [-2, -1, 1, 2, 0, 0, 1, -1, -1, 1, 1, -1, 0, 0, 0, 0]
 
-    ds = dataset_wizard(raw.copy(), targets=range(16), chunks=[0] * 16)
-    pristine = dataset_wizard(raw.copy(), targets=range(16), chunks=[0] * 16)
+    ds = dataset_wizard(raw.copy(), targets=list(range(16)), chunks=[0] * 16)
+    pristine = dataset_wizard(raw.copy(), targets=list(range(16)), chunks=[0] * 16)
 
     zm = ZScoreMapper()
     # should do global zscore by default
@@ -150,7 +150,7 @@ def test_zscore():
 
     # let's look at chunk-wise z-scoring
     ds = dataset_wizard(np.hstack((raw.copy(), raw2.copy())),
-                        targets=range(32),
+                        targets=list(range(32)),
                         chunks=[0] * 16 + [1] * 16)
     # by default chunk-wise
     zm = ZScoreMapper()
@@ -179,7 +179,7 @@ def test_zscore():
     # properly -- should zscore all features (not just first/none
     # as it was before)
     ds = dataset_wizard(np.arange(32).reshape((8,-1)),
-                        targets=range(8), chunks=[0] * 8)
+                        targets=list(range(8)), chunks=[0] * 8)
     means = [0, 1, -10, 10]
     std0 = np.std(ds[:, 0])             # std deviation of first one
     stds = [std0, 10, .1, 1]
@@ -199,7 +199,7 @@ def test_zscore_withoutchunks():
     # https://github.com/PyMVPA/PyMVPA/issues/26
     # are fixed
     from mvpa2.datasets import Dataset
-    ds = Dataset(np.arange(32).reshape((8,-1)), sa=dict(targets=range(8)))
+    ds = Dataset(np.arange(32).reshape((8,-1)), sa=dict(targets=list(range(8))))
     zscore(ds, chunks_attr=None)
     assert(np.any(ds.samples != np.arange(32).reshape((8,-1))))
     ds_summary = ds.summary()

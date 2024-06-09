@@ -9,7 +9,7 @@
 """Fixer for rdist in scipy
 """
 # For scipy import
-from __future__ import absolute_import
+
 
 __docformat__ = 'restructuredtext'
 
@@ -38,27 +38,49 @@ if not externals.exists('good scipy.stats.rdist') \
     # NB: Following function is copied from scipy SVN rev.5236
     #     and fixed with pow -> np.power (thanks Josef!)
     # FIXME: PPF does not work.
+    # class rdist_gen(rv_continuous):
+    #     def _pdf(self, x, c):
+    #         return np.power((1.0-x*x),c/2.0-1) / special.beta(0.5,c/2.0)
+    #     def _cdf_skip(self, x, c):
+    #         #error inspecial.hyp2f1 for some values see tickets 758, 759
+    #         return 0.5 + x/special.beta(0.5,c/2.0)* \
+    #                special.hyp2f1(0.5,1.0-c/2.0,1.5,x*x)
+    #     def _munp(self, n, c):
+    #         return (1-(n % 2))*special.beta((n+1.0)/2,c/2.0)
+
+    # # Lets try to avoid at least some of the numerical problems by removing points
+    # # around edges
+    # rdist = rdist_gen(a=-1.0, b=1.0, name="rdist", longname="An R-distributed",
+    #                   shapes="c", extradoc="""
+
+    # R-distribution
+
+    # rdist.pdf(x,c) = (1-x**2)**(c/2-1) / B(1/2, c/2)
+    # for -1 <= x <= 1, c > 0.
+    # """
+    #                   )
+
     class rdist_gen(rv_continuous):
         def _pdf(self, x, c):
-            return np.power((1.0-x*x),c/2.0-1) / special.beta(0.5,c/2.0)
+            return np.power((1.0-x*x), c/2.0-1) / special.beta(0.5, c/2.0)
+
         def _cdf_skip(self, x, c):
-            #error inspecial.hyp2f1 for some values see tickets 758, 759
-            return 0.5 + x/special.beta(0.5,c/2.0)* \
-                   special.hyp2f1(0.5,1.0-c/2.0,1.5,x*x)
+            return 0.5 + x/special.beta(0.5, c/2.0) * special.hyp2f1(0.5, 1.0-c/2.0, 1.5, x*x)
+
         def _munp(self, n, c):
-            return (1-(n % 2))*special.beta((n+1.0)/2,c/2.0)
+            return (1-(n % 2)) * special.beta((n+1.0)/2, c/2.0)
 
-    # Lets try to avoid at least some of the numerical problems by removing points
-    # around edges
-    rdist = rdist_gen(a=-1.0, b=1.0, name="rdist", longname="An R-distributed",
-                      shapes="c", extradoc="""
+    # Define a docstring for the distribution separately
+    rdist_gen.__doc__ = """
+    An R-distributed continuous random variable.
 
-    R-distribution
-
-    rdist.pdf(x,c) = (1-x**2)**(c/2-1) / B(1/2, c/2)
-    for -1 <= x <= 1, c > 0.
+    R-distribution:
+        rdist.pdf(x, c) = (1-x**2)**(c/2-1) / B(1/2, c/2)
+        for -1 <= x <= 1, c > 0.
     """
-                      )
+    # Create an instance of the distribution with required parameters
+    rdist = rdist_gen(a=-1.0, b=1.0, name="rdist")
+
     # Fix up number of arguments for veccdf's vectorize
     # Sicne scipy 0.18.0 there is veccdf in rdist_gen
     if hasattr(rdist, 'veccdf') and (rdist.veccdf.nin == 1):
@@ -108,7 +130,7 @@ if not externals.exists('good scipy.stats.rv_discrete.ppf'):
         """
         loc = kwds.get('loc')
         args, loc = self._rv_discrete__fix_loc(args, loc)
-        q,loc  = map(arr,(q,loc))
+        q,loc  = list(map(arr,(q,loc)))
         args = tuple(map(arr,args))
         cond0 = self._argcheck(*args) & (loc == loc)
         cond1 = (q > 0) & (q < 1)
@@ -148,7 +170,7 @@ if externals.versions['scipy'] >= '0.8.0' and \
         args = list(args)
         Nargs = len(args)
         fixedn = []
-        index = range(Nargs)
+        index = list(range(Nargs))
         names = ['f%d' % n for n in range(Nargs - 2)] + ['floc', 'fscale']
         x0 = []
         for n, key in zip(index, names):

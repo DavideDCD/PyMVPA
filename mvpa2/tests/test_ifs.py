@@ -32,7 +32,7 @@ class IFSTests(unittest.TestCase):
         data = np.random.standard_normal(( 100, 2, 2, 2 ))
         labels = np.concatenate( ( np.repeat( 0, 50 ),
                                   np.repeat( 1, 50 ) ) )
-        chunks = np.repeat( range(5), 10 )
+        chunks = np.repeat( list(range(5)), 10 )
         chunks = np.concatenate( (chunks, chunks) )
         return Dataset.from_wizard(samples=data, targets=labels, chunks=chunks)
 

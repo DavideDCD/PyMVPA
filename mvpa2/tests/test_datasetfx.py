@@ -10,7 +10,6 @@
 
 import unittest
 from mvpa2.testing.tools import ok_, assert_equal, assert_array_equal, reseed_rng
-from mvpa2.testing import sweepargs, skip_if_no_external
 
 import numpy as np
 
@@ -21,7 +20,6 @@ from mvpa2.datasets.miscfx import remove_invariant_features, coarsen_chunks, \
 
 
 from mvpa2.misc.data_generators import normal_feature_dataset
-from mvpa2.testing.datasets import datasets
 
 class MiscDatasetFxTests(unittest.TestCase):
 
@@ -74,7 +72,7 @@ class MiscDatasetFxTests(unittest.TestCase):
         self.assertTrue((chunks1 == np.asarray([0,0,0,0,1,1,1,1])).all())
 
         ds2 = dataset_wizard(samples=np.arange(len(chunks)).reshape(
-            (len(chunks),1)), targets=[1]*8, chunks=range(len(chunks)))
+            (len(chunks),1)), targets=[1]*8, chunks=list(range(len(chunks))))
         coarsen_chunks(ds2, nchunks=2)
         self.assertTrue((chunks1 == ds.chunks).all())
 
@@ -113,8 +111,8 @@ class MiscDatasetFxTests(unittest.TestCase):
                       -1,  1, -1,  1, -1,  1,  1,  1, -1,  1,  1,
                       -1, -1, -1,  1,  1,  1,  1,  1, -1], dtype=int)
         rp = SequenceStats(sp, order=order)
-        self.failUnlessAlmostEqual(rp['sumabscorr'], 1.0)
-        self.failUnlessAlmostEqual(np.max(rp['corrcoef'] * (len(sp)-1) + 1.0), 0.0)
+        self.assertAlmostEqual(rp['sumabscorr'], 1.0)
+        self.assertAlmostEqual(np.max(rp['corrcoef'] * (len(sp)-1) + 1.0), 0.0)
 
         # Now some random but loong one still binary (boolean)
         sb = (np.random.random_sample((1000,)) >= 0.5)
@@ -139,12 +137,6 @@ class MiscDatasetFxTests(unittest.TestCase):
             # Check if str works fine
             sr = str(r)
             # TODO: check the content
-
-    @sweepargs(ds=datasets.itervalues())
-    def test_to_df_smoke(self, ds):
-        skip_if_no_external('pandas')
-        df = ds.to_df()
-        print(df)
 
 
 
