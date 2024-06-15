@@ -111,7 +111,7 @@ def afni_niml_zscore_makefull_wizard(cfg):
     if group_postfix is None:
         group_postfix = _smart_filename_decode(fns, 'postfix')
         if group_postfix is not None:
-            print "Using automatic postfix %s" % group_postfix
+            print("Using automatic postfix %s" % group_postfix)
 
     overwrite = cfg['overwrite']
 
@@ -124,7 +124,7 @@ def afni_niml_zscore_makefull_wizard(cfg):
             pad_to_ico_ld = _smart_filename_decode(fns, 'pad_to_ico_ld')
             if pad_to_ico_ld is not None:
                 pad_to_node = pad_to_ico_ld * pad_to_ico_ld * 10 + 2
-                print "Using automatic pad_to_ico_ld=%r, pad_to_node=%r" % (pad_to_ico_ld, pad_to_node)
+                print("Using automatic pad_to_ico_ld=%r, pad_to_node=%r" % (pad_to_ico_ld, pad_to_node))
 
     if pad_to_node:
         pad_to_node = int(pad_to_node)
@@ -137,10 +137,10 @@ def afni_niml_zscore_makefull_wizard(cfg):
         fnout = pathjoin(pth, prefix + nm)
 
         if os.path.exists(fnout) and not overwrite:
-            print("Output file %s already exists, skipping (use '--overwrite' to override)" % fnout)
+            print(("Output file %s already exists, skipping (use '--overwrite' to override)" % fnout))
         else:
             afni_niml_zscore_makefull(fn, fnout, pad_to_node=pad_to_node)
-            print "Converted %s -> %s (in %s)" % (nm, prefix + nm, pth)
+            print("Converted %s -> %s (in %s)" % (nm, prefix + nm, pth))
 
         fnouts.append(fnout)
 
@@ -164,7 +164,7 @@ def afni_niml_zscore_makefull_wizard(cfg):
         if overwrite:
             cmds.extend('rm %s;' % fn for fn in groupfnsout)
         else:
-            print("Some or all of output files (%s) already exists (use '--overwrite' to override)" % (" ".join(groupfnsout)))
+            print(("Some or all of output files (%s) already exists (use '--overwrite' to override)" % (" ".join(groupfnsout))))
 
     cmds.append('%s -prefix ./%s' % (instacorrbin, fullprefix))
     cmds.extend(' %s' % fn for fn in fnouts)
@@ -182,13 +182,13 @@ def afni_niml_zscore_makefull_wizard(cfg):
     "- in SUMA, select a node while holding down ctrl+shift" %
     (pth, fullprefix))
 
-    print msg
+    print(msg)
 
 
 
 def _full_path(fn):
     if type(fn) is list:
-        return map(_full_path, fn)
+        return list(map(_full_path, fn))
 
     return os.path.abspath(fn)
 

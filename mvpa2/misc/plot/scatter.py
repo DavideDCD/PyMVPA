@@ -17,7 +17,6 @@ import nibabel as nb
 import numpy as np
 
 from mvpa2.base import verbose, warning
-from mvpa2.base import externals
 
 __all__ = ['plot_scatter']
 
@@ -31,17 +30,6 @@ def fill_nonfinites(a, fill=0, inplace=True):
             a = a.copy()
         a[nonfinites] = fill
     return a
-
-
-if externals.versions['matplotlib'] >= '2':
-    pl_axes = pl.axes
-else:
-    # older versions, e.g. 1.3, do not understand facecolor
-    def pl_axes(*args, **kwargs):
-        if 'facecolor' in kwargs:
-            kwargs['axisbg'] = kwargs.pop('facecolor')
-        return pl.axes(*args, **kwargs)
-    pl_axes.__doc__ = pl.axes.__doc__
 
 
 def plot_scatter(dataXd, mask=None, masked_opacity=0.,
@@ -247,15 +235,15 @@ def plot_scatter(dataXd, mask=None, masked_opacity=0.,
 
         if ax_bp_x_parent:
             hist_x_pos = ax_bp_x_parent.get_position()
-            ax_bp_x = pl_axes( [hist_x_pos.x0,    hist_x_pos.y0 + hist_x_pos.height * 0.9,
-                                hist_x_pos.width, hist_x_pos.height * 0.1],  facecolor='y' )
+            ax_bp_x = pl.axes( [hist_x_pos.x0,    hist_x_pos.y0 + hist_x_pos.height * 0.9,
+                                hist_x_pos.width, hist_x_pos.height * 0.1],  axisbg='y' )
 
         if ax_bp_y_parent:
             hist_y_pos = ax_bp_y_parent.get_position()
-            ax_bp_y = pl_axes( [hist_y_pos.x0 + hist_y_pos.width*0.9,  hist_y_pos.y0,
-                                hist_y_pos.width * 0.1, hist_y_pos.height],  facecolor='y' )
+            ax_bp_y = pl.axes( [hist_y_pos.x0 + hist_y_pos.width*0.9,  hist_y_pos.y0,
+                                hist_y_pos.width * 0.1, hist_y_pos.height],  axisbg='y' )
 
-        # ax_bp_y = pl_axes( [left + width * 0.9, bottom, width/10, height], facecolor='y' ) if ax_hist_y else None
+        # ax_bp_y = pl.axes( [left + width * 0.9, bottom, width/10, height], axisbg='y' ) if ax_hist_y else None
 
 
     sc_kwargs = dict(facecolors='none', s=1, rasterized=rasterized) # common kwargs
@@ -287,18 +275,14 @@ def plot_scatter(dataXd, mask=None, masked_opacity=0.,
                                   **sc_kwargs)
 
             # Plot (on top) those which are not masked-out
-            if mask.size:
-                x_plot, y_plot, edgecolors_plot = x[mask], y[mask], edgecolors[mask]
-            else:
-                # older numpys blow here
-                x_plot, y_plot, edgecolors_plot = (np.array([]),) * 3
+            x_plot, y_plot, edgecolors_plot = x[mask], y[mask], edgecolors[mask]
         else:
             # Just plot all of them at once
             x_plot, y_plot, edgecolors_plot = x, y, edgecolors
 
         if len(x_plot):
             ax_scatter.scatter(x_plot, y_plot, edgecolors=edgecolors_plot,
-                             **sc_kwargs)
+                              **sc_kwargs)
 
         # for orientation we need to plot 1 slice... assume that the last dimension is z -- figure out a slice with max # of non-zeros
         zdim_entries = ndindices_nz[:, -1]
@@ -309,8 +293,8 @@ def plot_scatter(dataXd, mask=None, masked_opacity=0.,
             if hint_opacity:
                 # now we need to plot that zdim_max slice taking into account our colormap
                 # create new axes
-                axslice = pl_axes([left, bottom+height * 0.72, width/4., height/5.],
-                                  facecolor='y')
+                axslice = pl.axes([left, bottom+height * 0.72, width/4., height/5.],
+                                  axisbg='y')
                 axslice.axis('off')
                 sslice = np.zeros(dataXd.shape[1:3]) # XXX hardcoded assumption on dimcolor =1
                 sslice[:, : ] = np.arange(dimcolor_len)[None, :]
@@ -497,13 +481,13 @@ def plot_scatter_matrix(d, style='full', labels=None, fig=None, width_=6, **kwar
     if style == 'upper_triang':
         # style with upper row -- hists
         # next -- upper triang only
-        for r in xrange(n):
-            for c in xrange(r, n):
+        for r in range(n):
+            for c in range(r, n):
                 sp = pl.subplot(n, n, r*n+c+1)
                 axes[r,c] = pl.gca()
 
-        for d1 in xrange(0, n-1):
-            for d2 in xrange(d1+1, n):
+        for d1 in range(0, n-1):
+            for d2 in range(d1+1, n):
                 # only upper triangle
                 plot_scatter([d[i] for i in [d2, d1]], ax_scatter=axes[d1+1, d2],
                              ax_hist_x=axes[0, d2] if d1==0 else None,
@@ -514,15 +498,15 @@ def plot_scatter_matrix(d, style='full', labels=None, fig=None, width_=6, **kwar
         nullfmt   = pl.NullFormatter()         # no labels
 
         # diagonal -- histograms
-        for r in xrange(n):
-            for c in xrange(n):
+        for r in range(n):
+            for c in range(n):
                 sp = pl.subplot(n, n, r*n+c+1)
                 axes[r, c] = pl.gca()
 
-        for d1 in xrange(0, n):
+        for d1 in range(0, n):
             # we should unify the ranges of values displayed
             ylim = np.min(d[d1]), np.max(d[d1])
-            for d2 in xrange(0, n):
+            for d2 in range(0, n):
                 if d1 == d2:
                     continue
                 xlim = np.min(d[d2]), np.max(d[d2])
@@ -672,7 +656,7 @@ def plot_scatter_files(files,
     kwargs_orig = kwargs
     figs = []
     if style == 'pair1':
-        for i in xrange(1, len(datas)):
+        for i in range(1, len(datas)):
             data4d = np.asarray([datas[0], datas[i]])
             #del datas               # free up memory because above made a copy
             kwargs = kwargs_orig.copy()

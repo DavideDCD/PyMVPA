@@ -25,6 +25,7 @@ __docformat__ = 'restructuredtext'
 import numpy as np
 
 from mvpa2.base import warning, externals
+from functools import reduce
 
 if externals.exists('nibabel'):
     # nibabel is optional dependency here, those how would reach those points
@@ -299,7 +300,7 @@ class VolGeom(object):
             the indices from ijk, so that triples[i][j]==ijk[i,j]
         '''
 
-        return map(tuple, ijk)
+        return list(map(tuple, ijk))
 
     def triples2ijk(self, tuples):
         '''Converts triples to sub indices
@@ -625,7 +626,7 @@ class VolGeom(object):
             If a callable, it should be a a neighborhood function
             (like Sphere(..)) that can map a single voxel coordinate
             (represented as a triple of indices) to a list of voxel
-            coordinates that define the neighborhood of that
+            coordinates that define the neighboorhood of that
             coordinate. For example, Sphere(3) can be used to dilate the
             original mask by 3 voxels. If an int, then it uses
             Sphere(dilate) to dilate the mask. If set to None
@@ -685,7 +686,7 @@ class VolGeom(object):
         if nt is not None:
             sh = (sh[0], sh[1], sh[2], nt)
             data = np.zeros(sh, data_vec.dtype)
-            for t in xrange(nt):
+            for t in range(nt):
                 data[:, :, :, t] = data_t1
             return data
         else:
@@ -705,7 +706,7 @@ class VolGeom(object):
             If a callable, it should be a a neighborhood function
             (like Sphere(..)) that can map a single voxel coordinate
             (represented as a triple of indices) to a list of voxel
-            coordinates that define the neighborhood of that
+            coordinates that define the neighboorhood of that
             coordinate. For example, Sphere(3) can be used to dilate the
             original mask by 3 voxels. If an int, then it uses
             Sphere(dilate) to dilate the mask. If set to None
@@ -751,7 +752,7 @@ def from_any(s, mask_volume=None):
     if s is None or isinstance(s, VolGeom):
         return s
 
-    if isinstance(s, basestring):
+    if isinstance(s, str):
         # try to find a function to load the data
         load_function = None
 
@@ -814,7 +815,7 @@ def from_any(s, mask_volume=None):
                 if mask_volume is None and (hasattr(s, 'fa') and
                                            hasattr(s.fa, 'voxel_indices')):
                     mask_volume_indices = s.fa['voxel_indices']
-                elif isinstance(mask_volume, basestring):
+                elif isinstance(mask_volume, str):
                     if not mask_volume in s.fa:
                         raise ValueError('Key not found in s.fa: %r' % mask_volume)
                     mask_volume_indices = s.fa[mask_volume]
@@ -824,7 +825,7 @@ def from_any(s, mask_volume=None):
 
                     for idx in mask_volume_indices.value:
                         mask[tuple(idx)] = 1
-        except Exception, e:
+        except Exception as e:
             #no idea what type of beast this is.
             raise ValueError(
                 'Unrecognized input %r - not a VolGeom, '

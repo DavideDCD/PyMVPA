@@ -20,7 +20,9 @@ import sys
 
 from itertools import product
 # for SmartVersion
-from distutils.version import Version
+# from distutils.version import Version
+from packaging.version import Version, parse as version_parse
+from packaging.version import InvalidVersion
 
 import numpy as np
 #import numpy.random as npr
@@ -72,19 +74,18 @@ def transform_with_boxcar(data, startpoints, boxlength, offset=0, fx=np.mean):
     :rtype: array (len(startpoints) x data.shape[1:])
     """
     if boxlength < 1:
-        raise ValueError, "Boxlength lower than 1 makes no sense."
+        raise ValueError("Boxlength lower than 1 makes no sense.")
 
     # check for illegal boxes
     for sp in startpoints:
         if ( sp + offset + boxlength - 1 > len(data)-1 ) \
            or ( sp + offset < 0 ):
-            raise ValueError, \
-                  'Illegal box: start: %i, offset: %i, length: %i' \
-                  % (sp, offset, boxlength)
+            raise ValueError('Illegal box: start: %i, offset: %i, length: %i' \
+                  % (sp, offset, boxlength))
 
     # build a list of list where each sublist contains the indexes of to be
     # averaged data elements
-    selector = [ range( i + offset, i + offset + boxlength ) \
+    selector = [ list(range( i + offset, i + offset + boxlength)) \
                  for i in startpoints ]
 
     # average each box
@@ -115,7 +116,7 @@ def xunique_combinations(L, n):
     if n == 0:
         yield []
     else:
-        for i in xrange(len(L)-n+1):
+        for i in range(len(L)-n+1):
             for cc in xunique_combinations(L[i+1:], n-1):
                 yield [L[i]]+cc
 
@@ -142,7 +143,7 @@ def __xrandom_unique_combinations(L, n, k=None):
     if k is not None:
         # Just a helper for convenient limiting
         g = xrandom_unique_combinations(L, n)
-        for i in xrange(k):
+        for i in range(k):
             yield next(g)
     elif n == 0:
         yield []
@@ -165,7 +166,7 @@ def ncombinations(n, k):
     if 0 <= k <= n:
         ntok = 1
         ktok = 1
-        for t in xrange(1, min(k, n - k) + 1):
+        for t in range(1, min(k, n - k) + 1):
             ntok *= n
             ktok *= t
             n -= 1
@@ -205,7 +206,7 @@ def xrandom_unique_combinations(L, n, k=None):
         # Let's cycle through permutations while tracking
         # repeats
         seen = set()
-        indexes = range(len(L)) # switch to indices so we could
+        indexes = list(range(len(L))) # switch to indices so we could
                                 # reliably hash them
         while len(seen) < min(k, ncomb):
             np.random.shuffle(indexes)
@@ -239,7 +240,7 @@ def unique_combinations(L, n, sort=False):
 
 def xrandom_iterprod(n, *seq):
     """Generate n random iterprod's from given sequences"""
-    ls = map(len, seq)
+    ls = list(map(len, seq))
     seen = set()
     if n > np.prod(ls):
         n = np.prod(ls)
@@ -311,7 +312,7 @@ def is_in_volume(coord, shape):
     No more generalization (arbitrary minimal coord) is done to save
     on performance
     """
-    for i in xrange(len(coord)):
+    for i in range(len(coord)):
         if coord[i] < 0 or coord[i] >= shape[i]:
             return False
     return True
@@ -341,13 +342,13 @@ def version_to_tuple(v):
     Tuple of integers constructed by splitting at '.' or interleaves
     of numerics and alpha numbers
     """
-    if isinstance(v, basestring):
-        v = map(str, v.split('.'))
+    if isinstance(v, str):
+        v = list(map(str, v.split('.')))
     elif isinstance(v, (tuple, list)):
         # assure tuple
         pass
     else:
-        raise ValueError, "Do not know how to treat version '%s'" % str(v)
+        raise ValueError("Do not know how to treat version '%s'" % str(v))
 
     # Try to convert items into ints
     vres = []
@@ -383,113 +384,157 @@ def version_to_tuple(v):
 
     return v
 
-class SmartVersion(Version):
-    """A bit evolved comparison of versions
+# class SmartVersion(Version):
+#     """A bit evolved comparison of versions
 
-    The reason for not using python's distutil.version is that it
-    seems to have no clue about somewhat common conventions of using
-    '-dev' or 'dev' or 'rc' suffixes for upcoming releases (so major
-    version does contain upcoming release already).
+#     The reason for not using python's distutil.version is that it
+#     seems to have no clue about somewhat common conventions of using
+#     '-dev' or 'dev' or 'rc' suffixes for upcoming releases (so major
+#     version does contain upcoming release already).
 
-    So here is an ad-hoc and not as nice implementation
+#     So here is an ad-hoc and not as nice implementation
+#     """
+
+#     def __reduce__(self):
+#         """Rudimentary __reduce__ because Version is not derived from object"""
+#         # parent class Version might not even assign any vstring when empty
+#         return self.__class__, (getattr(self, 'vstring', ''),)
+
+#     def parse(self, vstring):
+#         # Unicode gives grief on older releases and anyway arguably comparable
+#         if isinstance(vstring, str):
+#             vstring = str(vstring)
+#         self.vstring = vstring
+#         self.version = version_to_tuple(vstring)
+
+#     def __str__(self):
+#         try:
+#             return self.vstring
+#         except AttributeError:
+#             # Version.__init__ doesn't take care about assigning
+#             # .vstring if None is given, so let's just treat as it is
+#             # an empty string
+#             return ""
+
+#     def __cmp__(self, other):
+#         if isinstance(other, (str, tuple, list)):
+#             other = SmartVersion(other)
+#         elif isinstance(other, SmartVersion):
+#             pass
+#         elif isinstance(other, Version):
+#             other = SmartVersion(other.vstring)
+#         else:
+#             raise ValueError("Do not know how to treat version %s"
+#                              % str(other))
+
+#         if sys.version >= '3':
+#             def cmp(a, b):
+#                 """Compatibility with Python3 -- regular (deprecated
+#                 in 3) cmp operation should be sufficient for our needs"""
+#                 return (a > b) - (a < b)
+#         else:
+#             # having above cmp overloads builtin cmp for this function so we
+#             # need manually rebind it or just resort to above cmp in general
+#             # (why not?)
+#             from builtins import cmp
+
+#         # Do ad-hoc comparison of strings
+#         i = 0
+
+#         # if any of the versions was not parsed (e.g. if None was provided),
+#         # comparison can't be performed really unless both have no version
+#         # assigned
+#         if (not hasattr(self, 'version')) and (not hasattr(other, 'version')):
+#             return 0
+
+#         for v in (self, other):
+#             if not (hasattr(v, 'version')):
+#                 raise ValueError('%s has no version information' % v)
+
+#         s, o = self.version, other.version
+#         regex_prerelease = re.compile('~|-?dev|-?rc|-?svn|-?pre|-?beta|-?alpha', re.I)
+#         for i in range(max(len(s), len(o))):
+#             if i < len(s): si = s[i]
+#             else: si = None
+#             if i < len(o): oi = o[i]
+#             else: oi = None
+
+#             if si == oi:
+#                 continue
+
+#             for x,y,mult in ((si, oi, 1), (oi, si, -1)):
+#                 if x is None:
+#                     if isinstance(y, int):
+#                         return -mult #  we got '.1' suffix
+#                     if isinstance(y, str):
+#                         if (regex_prerelease.match(y)):
+#                             return mult        # so we got something to signal
+#                                                # pre-release, so first one won
+#                         else:
+#                             # otherwise the other one wins
+#                             return -mult
+#                     else:
+#                         raise RuntimeError("Should not have got here with %s" \
+#                               % y)
+#                 elif isinstance(x, int):
+#                     if not isinstance(y, int):
+#                         return mult
+#                     return mult*cmp(x, y) # both are ints
+#                 elif isinstance(x, str):
+#                     if isinstance(y, str):
+#                         return mult*cmp(x,y)
+#         return 0
+
+#     if sys.version >= '3':
+#         # version.py logic in python3 does not rely on deprecated
+#         # __cmp__ but renames it into _cmp  and wraps in those various
+#         # comparators...  thus our good old __cmp__ should be ok for our
+#         # purposes here
+#         _cmp = __cmp__
+
+class SmartVersion:
+    """
+    A class for more evolved comparison of versions, which recognizes
+    pre-release versions like 'dev', 'rc', etc., by leveraging the
+    'packaging.version' module.
     """
 
-    def __reduce__(self):
-        """Rudimentary __reduce__ because Version is not derived from object"""
-        # parent class Version might not even assign any vstring when empty
-        return self.__class__, (getattr(self, 'vstring', ''),)
-
-    def parse(self, vstring):
-        # Unicode gives grief on older releases and anyway arguably comparable
-        if isinstance(vstring, unicode):
-            vstring = str(vstring)
-        self.vstring = vstring
-        self.version = version_to_tuple(vstring)
+    def __init__(self, vstring=''):
+        try:
+            self.version = version_parse(vstring)
+        except InvalidVersion:
+            self.version = None
 
     def __str__(self):
-        try:
-            return self.vstring
-        except AttributeError:
-            # Version.__init__ doesn't take care about assigning
-            # .vstring if None is given, so let's just treat as it is
-            # an empty string
-            return ""
+        if self.version is not None:
+            return str(self.version)
+        return ""
 
-    def __cmp__(self, other):
-        if isinstance(other, (str, unicode, tuple, list)):
-            other = SmartVersion(other)
-        elif isinstance(other, SmartVersion):
-            pass
-        elif isinstance(other, Version):
-            other = SmartVersion(other.vstring)
-        else:
-            raise ValueError("Do not know how to treat version %s"
-                             % str(other))
+    def __eq__(self, other):
+        if isinstance(other, SmartVersion):
+            return self.version == other.version
+        elif isinstance(other, str):
+            return self.version == version_parse(other)
+        return NotImplemented
 
-        if sys.version >= '3':
-            def cmp(a, b):
-                """Compatibility with Python3 -- regular (deprecated
-                in 3) cmp operation should be sufficient for our needs"""
-                return (a > b) - (a < b)
-        else:
-            # having above cmp overloads builtin cmp for this function so we
-            # need manually rebind it or just resort to above cmp in general
-            # (why not?)
-            from __builtin__ import cmp
+    def __lt__(self, other):
+        if isinstance(other, SmartVersion):
+            return self.version < other.version
+        elif isinstance(other, str):
+            return self.version < version_parse(other)
+        return NotImplemented
 
-        # Do ad-hoc comparison of strings
-        i = 0
+    def __le__(self, other):
+        return self == other or self < other
 
-        # if any of the versions was not parsed (e.g. if None was provided),
-        # comparison can't be performed really unless both have no version
-        # assigned
-        if (not hasattr(self, 'version')) and (not hasattr(other, 'version')):
-            return 0
+    def __gt__(self, other):
+        return not (self <= other)
 
-        for v in (self, other):
-            if not (hasattr(v, 'version')):
-                raise ValueError('%s has no version information' % v)
+    def __ge__(self, other):
+        return not (self < other)
 
-        s, o = self.version, other.version
-        regex_prerelease = re.compile('~|-?dev|-?rc|-?svn|-?pre|-?beta|-?alpha', re.I)
-        for i in xrange(max(len(s), len(o))):
-            if i < len(s): si = s[i]
-            else: si = None
-            if i < len(o): oi = o[i]
-            else: oi = None
-
-            if si == oi:
-                continue
-
-            for x,y,mult in ((si, oi, 1), (oi, si, -1)):
-                if x is None:
-                    if isinstance(y, int):
-                        return -mult #  we got '.1' suffix
-                    if isinstance(y, str):
-                        if (regex_prerelease.match(y)):
-                            return mult        # so we got something to signal
-                                               # pre-release, so first one won
-                        else:
-                            # otherwise the other one wins
-                            return -mult
-                    else:
-                        raise RuntimeError, "Should not have got here with %s" \
-                              % y
-                elif isinstance(x, int):
-                    if not isinstance(y, int):
-                        return mult
-                    return mult*cmp(x, y) # both are ints
-                elif isinstance(x, str):
-                    if isinstance(y, str):
-                        return mult*cmp(x,y)
-        return 0
-
-    if sys.version >= '3':
-        # version.py logic in python3 does not rely on deprecated
-        # __cmp__ but renames it into _cmp  and wraps in those various
-        # comparators...  thus our good old __cmp__ should be ok for our
-        # purposes here
-        _cmp = __cmp__
+    def __ne__(self, other):
+        return not (self == other)
 
 ##REF: Name was automagically refactored
 def get_break_points(items, contiguous=True):
@@ -512,14 +557,13 @@ def get_break_points(items, contiguous=True):
     """List of items which was already seen"""
     result = []
     """Resultant list"""
-    for index in xrange(len(items)):
+    for index in range(len(items)):
         item = items[index]
         if item in known:
             if index > 0:
                 if prev != item:            # breakpoint
                     if contiguous:
-                        raise ValueError, \
-                        "Item %s was already seen before" % str(item)
+                        raise ValueError("Item %s was already seen before" % str(item))
                     else:
                         result.append(index)
         else:
@@ -547,7 +591,7 @@ def rfe_history_to_maps(history):
     nfeatures, steps = len(history), max(history) - min(history) + 1
     history_maps = np.zeros((steps, nfeatures))
 
-    for step in xrange(steps):
+    for step in range(steps):
         history_maps[step, history >= step] = 1
 
     return history_maps
@@ -633,7 +677,7 @@ class Event(dict):
         # basic checks
         for k in Event._MUSTHAVE:
             if not k in self:
-                raise ValueError, "Event must have '%s' defined." % k
+                raise ValueError("Event must have '%s' defined." % k)
 
 
     ##REF: Name was automagically refactored
@@ -848,7 +892,7 @@ def get_nelements_per_value(data):
         values = data
 
     # use dictionary to cope with arbitrary values
-    result = dict(zip(uniquevalues, [ 0 ] * len(uniquevalues)))
+    result = dict(list(zip(uniquevalues, [ 0 ] * len(uniquevalues))))
     for l in values:
         result[l] += 1
 

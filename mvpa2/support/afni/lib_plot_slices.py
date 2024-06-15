@@ -139,7 +139,7 @@ def load_vol(fn, master_fn=None):
 
     if is_nifti:
         if master_fn is not None:
-            print "Warning: Ignoring master %s for %s" % (master_fn, fn)
+            print("Warning: Ignoring master %s for %s" % (master_fn, fn))
         return load_nii(fn)
     else:
         return load_afni(fn, master_fn)
@@ -210,7 +210,7 @@ def color_slice(data, cmap, min_max=None):
     # get colormap
     if type(cmap) is bool:
         cmap = 'hot' if cmap else 'gray'
-    if isinstance(cmap, basestring):
+    if isinstance(cmap, str):
         cmap = plt.get_cmap(cmap)
 
     if type(data) is list:
@@ -358,14 +358,14 @@ def make_plot(ulay, olay, dims, pos, title=None,
     bgcolor = 'black'
 
     # load underlay and overlay
-    if isinstance(ulay, basestring):
+    if isinstance(ulay, str):
         ulay_name = split(ulay)[1]
         u = load_vol(ulay)
     else:
         ulay_name = ''
         u = ulay
 
-    if isinstance(olay, basestring):
+    if isinstance(olay, str):
         olay_name = split(olay)[1]
         o = load_vol(olay)
     else:
@@ -387,7 +387,7 @@ def make_plot(ulay, olay, dims, pos, title=None,
     o = color_slice(o, True, (0, 1))
 
     # blend underlay and overlay
-    uo = map(zip, *zip(*zip(u, o)))
+    uo = list(map(zip, *list(zip(*list(zip(u, o))))))
     sl = blend(uo)
 
     # free up some space
@@ -402,8 +402,8 @@ def make_plot(ulay, olay, dims, pos, title=None,
     [f, axs] = plt.subplots(nrow, ncol, sharex=True, figsize=figsize)
     f.set_facecolor(bgcolor)
     counter = 0
-    for j in xrange(ncol):
-        for i in xrange(nrow):
+    for j in range(ncol):
+        for i in range(nrow):
             counter += 1
             ax = axs[i, j]
 
@@ -469,7 +469,7 @@ def make_scatter(ulay, olay, output_fn=None):
     msk = np.logical_and(o > cutoff(o), u > cutoff(u))
     apply_msk = lambda x:np.asarray(x[msk], dtype=np.float_)
 
-    um, om = map(apply_msk, (u, o))
+    um, om = list(map(apply_msk, (u, o)))
 
     ## compute distance of each voxel from center of mass
     sh = np.asarray(u.shape)
@@ -479,7 +479,7 @@ def make_scatter(ulay, olay, output_fn=None):
     #
     xyz = np.zeros((nf, ndim), dtype=u.dtype)
 
-    for dim in xrange(ndim):
+    for dim in range(ndim):
         r = np.arange(sh[dim])
         vec_dim = np.ones(ndim)
         vec_dim[dim] = sh[dim]
@@ -537,7 +537,7 @@ def make_scatter(ulay, olay, output_fn=None):
     axScatter.set_xlabel('Underlay intensity')
     axScatter.set_ylabel('Overlay intensity')
 
-    umax, omax = map(np.max, (um, om))
+    umax, omax = list(map(np.max, (um, om)))
 
     axScatter.set_xlim((0, umax))
     axScatter.set_ylim((0, omax))

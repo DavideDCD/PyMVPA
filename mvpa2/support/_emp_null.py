@@ -7,7 +7,7 @@ data behaves as a standard normal under H_0.
 Author : Bertrand Thirion, 2008-2009
 """
 # For scipy import
-from __future__ import absolute_import
+
 
 import numpy as np
 from numpy.linalg import pinv
@@ -98,11 +98,11 @@ class FDR(object):
         """
         pv = np.squeeze(pv)
         if pv.min()<0:
-            print pv.min()
-            raise ValueError, "Negative p-values"
+            print(pv.min())
+            raise ValueError("Negative p-values")
         if pv.max()>1:
-            print pv.max()
-            raise ValueError, "P-values greater than 1!"
+            print(pv.max())
+            raise ValueError("P-values greater than 1!")
         return pv
 
     def pth_from_pvals(self, pv, alpha=0.05):
@@ -236,16 +236,11 @@ class ENN(object):
         step = 3.5*np.std(self.x)/np.exp(np.log(self.n)/3)
         bins = int(max(10, (self.x.max() - self.x.min())/step))
         hist, ledge = np.histogram(x, bins=bins)
-        # I think there was a change in some numpy version on what to return
-        assert len(ledge) in (bins, bins + 1)
-        if len(ledge) == bins + 1:
-            # we are interested in left edges
-            ledge = ledge[:bins]
-        step = ledge[1] - ledge[0]
+        step = ledge[1]-ledge[0]
         medge = ledge + 0.5*step
-
+    
         # remove null bins
-        whist = hist > 0
+        whist = hist>0
         hist = hist[whist]
         medge = medge[whist]
         hist = hist.astype('f')
@@ -297,8 +292,8 @@ class ENN(object):
             self.plot(efp, alpha)
     
         if efp[-1] > alpha:
-            print "the maximal value is %f , the corresponding fdr is %f " \
-                    % (self.x[-1], efp[-1])
+            print("the maximal value is %f , the corresponding fdr is %f " \
+                    % (self.x[-1], efp[-1]))
             return np.infty
         j = np.argmin(efp[::-1] < alpha) + 1
         return 0.5*(self.x[-j] + self.x[-j+1])

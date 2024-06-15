@@ -21,7 +21,7 @@ and __getstate__ - have to flag somehow whether this mapping was present.
 
 __docformat__ = 'restructuredtext'
 
-from collections import Mapping
+from collections.abc import Mapping
 
 import numpy as np
 
@@ -143,7 +143,7 @@ class VolumeMaskDictionary(Mapping):
             the number of elements in nbrs or one.
         """
 
-        if not type(src) in [int, basestring]:
+        if not type(src) in [int, str]:
             # for now to avoid unhasbable type
             raise TypeError("src should be int or str")
 
@@ -162,7 +162,7 @@ class VolumeMaskDictionary(Mapping):
             if expected_keys and (set(aux) != expected_keys):
                 raise ValueError("aux label mismatch: %s != %s" %
                                 (set(aux), expected_keys))
-            for k, v in aux.iteritems():
+            for k, v in aux.items():
                 if not k in self._src2aux:
                     self._src2aux[k] = dict()
 
@@ -170,7 +170,7 @@ class VolumeMaskDictionary(Mapping):
                 if len(self._src2aux[k]) == 0:
                     v_dtype = None
                 else:
-                    v_dtype = next(self._src2aux[k].itervalues()).dtype
+                    v_dtype = next(iter(self._src2aux[k].values())).dtype
 
                 if isinstance(v, (list, tuple, int, float, np.ndarray)):
                     v_arr = np.asanyarray(v, dtype=v_dtype).ravel()
@@ -218,7 +218,7 @@ class VolumeMaskDictionary(Mapping):
 
             tuple_lists.append(tuple_list_elem)
 
-        return zip(*tuple_lists)
+        return list(zip(*tuple_lists))
 
     @deprecated("use .get_tuple_list instead")
     def get_tuple_list_dict(self, *labels):
@@ -237,7 +237,7 @@ class VolumeMaskDictionary(Mapping):
             get_tuple_list(s, labels)==get_tuple_list_dict(labels)[s]
         """
         d = dict()
-        for src in self.keys():
+        for src in list(self.keys()):
             d[src] = self.get_tuple_list(src, *labels)
         return d
 
@@ -304,13 +304,13 @@ class VolumeMaskDictionary(Mapping):
         keys: list of str
             Names of auxiliary labels that are supported by get_aux
         '''
-        return self._src2aux.keys()
+        return list(self._src2aux.keys())
 
     def _ensure_has_target2sources(self):
         '''Helper function to ensure that inverse mapping is set properly'''
         if not self._lazy_nbr2src:
             self._lazy_nbr2src = dict()
-            for src in self.keys():
+            for src in list(self.keys()):
                 self._add_target2source(src)
 
     def _add_target2source(self, src, targets=None):
@@ -340,7 +340,7 @@ class VolumeMaskDictionary(Mapping):
             Indices i for which get(i) contains nbr
         """
         if type(nbr) in (list, tuple):
-            return map(self.target2sources, nbr)
+            return list(map(self.target2sources, nbr))
 
         self._ensure_has_target2sources()
 
@@ -418,7 +418,7 @@ class VolumeMaskDictionary(Mapping):
         m_lin = np.zeros((self.volgeom.nvoxels, 1), dtype=np.int8)
 
         if keys is None:
-            keys = self.keys()
+            keys = list(self.keys())
 
         for key in keys:
             m_lin[self[key]] = 1
@@ -479,7 +479,7 @@ class VolumeMaskDictionary(Mapping):
         self._check_has_keys(keys=keys)
 
         if keys is None:
-            keys = self.keys()
+            keys = list(self.keys())
 
         # get linear voxel indices
         lin_vox_set = set.union(*(set(self[k]) for k in keys))
@@ -487,7 +487,7 @@ class VolumeMaskDictionary(Mapping):
         # convert to array
         lin_vox_arr = np.asarray(list(lin_vox_set))
 
-        return map(tuple, self.volgeom.lin2ijk(lin_vox_arr))
+        return list(map(tuple, self.volgeom.lin2ijk(lin_vox_arr)))
 
     def get_dataset_feature_mask(self, ds, keys=None):
         """For a dataset return a mask of features that were selected
@@ -518,8 +518,8 @@ class VolumeMaskDictionary(Mapping):
 
         """
         # convert to tuples
-        ds_voxel_indices = map(tuple, ds.fa.voxel_indices)
-        sel_voxel_indices = map(tuple, self.get_voxel_indices(keys=keys))
+        ds_voxel_indices = list(map(tuple, ds.fa.voxel_indices))
+        sel_voxel_indices = list(map(tuple, self.get_voxel_indices(keys=keys)))
 
         set_ds_voxel_indices = set(ds_voxel_indices)
         set_sel_voxel_indices = set(sel_voxel_indices)
@@ -566,7 +566,7 @@ class VolumeMaskDictionary(Mapping):
         return len(self.__keys__())
 
     def __keys__(self):
-        return self._src2nbr.keys()
+        return list(self._src2nbr.keys())
 
     def __iter__(self):
         return iter(self.__keys__())
@@ -665,7 +665,7 @@ class VolumeMaskDictionary(Mapping):
         if set(self.keys()) != set(other.keys()):
             return False
 
-        for k in self.keys():
+        for k in list(self.keys()):
             if self[k] != other[k]:
                 return False
 
@@ -673,7 +673,7 @@ class VolumeMaskDictionary(Mapping):
             return False
 
         for lab in self.aux_keys():
-            for k in self.keys():
+            for k in list(self.keys()):
                 if self.get_aux(k, lab) != other.get_aux(k, lab):
                     return False
 
@@ -740,7 +740,7 @@ class VolumeMaskDictionary(Mapping):
 
         aks = self.aux_keys()
         if set(aks) != set(other.aux_keys()):
-            if len(self.keys()) == 0:
+            if len(list(self.keys())) == 0:
                 # current instance is empty, so use the keys from
                 # the other (necessarily non-empty because of the check above)
                 # instance
@@ -762,7 +762,7 @@ class VolumeMaskDictionary(Mapping):
 
         self._lazy_nbr2src = None
 
-        for k in other.keys():
+        for k in list(other.keys()):
             idxs = other[k]
 
             a_dict = dict()
@@ -822,7 +822,7 @@ class VolumeMaskDictionary(Mapping):
             raise ValueError("Cannot find coordinates in %r" % self.source)
 
         if ss is None:
-            ss = self.keys()
+            ss = list(self.keys())
         if not isinstance(ss, np.ndarray):
             if type(ss) is int:
                 ss = [ss]
@@ -882,7 +882,7 @@ class VolumeMaskDictionary(Mapping):
 
         if not flat_srcs:
             if fallback_euclidean_distance:
-                flat_srcs = self.keys()
+                flat_srcs = list(self.keys())
             else:
                 return None
 
@@ -941,12 +941,12 @@ def _dict_with_arrays2array_tuple(d):
 
     if d is None:
         return None
-    if all(type(v) is dict for v in d.values()):
+    if all(type(v) is dict for v in list(d.values())):
         # probably src2aux, so run recursively
         return dict((k, _dict_with_arrays2array_tuple(v))
-                        for k, v in d.iteritems())
+                        for k, v in d.items())
 
-    keys = np.asarray(d.keys())
+    keys = np.asarray(list(d.keys()))
 
     lengths = np.asarray([len(d[key]) for key in keys])
 
@@ -1003,11 +1003,11 @@ def _array_tuple2dict_with_arrays(kld):
         if kld is None:
             return None
         if type(kld) is dict:
-            if all(type(v) in (tuple, dict) for v in kld.values()):
+            if all(type(v) in (tuple, dict) for v in list(kld.values())):
                 # probably src2aux, so run recursively
                 return dict((k, _array_tuple2dict_with_arrays(v))
-                            for k, v in kld.iteritems())
-            elif all(isinstance(v, np.ndarray) for v in kld.values()):
+                            for k, v in kld.items())
+            elif all(isinstance(v, np.ndarray) for v in list(kld.values())):
                 # old-style mapping
                 return kld
             else:
@@ -1045,7 +1045,7 @@ def from_any(s):
     -------
     r: volume_mask_dict.VolumeMaskDictionary
     """
-    if isinstance(s, basestring):
+    if isinstance(s, str):
         vs = h5load(s)
         return from_any(vs)
     elif isinstance(s, VolumeMaskDictionary):

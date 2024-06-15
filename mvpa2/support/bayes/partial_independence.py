@@ -40,7 +40,7 @@ def compute_logp_H(X, psi, alpha=None):
     for group in psi:
         if len(group) == 1: logp_H += log_multivariate_polya(X[group[0],:], alpha[group[0],:])
         else:
-            nogroup = filter(lambda a: a not in group, range(X.shape[1]))
+            nogroup = [a for a in range(X.shape[1]) if a not in group]
             logp_H += np.sum([log_multivariate_polya([X[i,group].sum()] + X[i,nogroup].tolist(),
                                                      [alpha[i,group].sum()] + alpha[i,nogroup].tolist())
                               for i in group])
@@ -65,8 +65,8 @@ if __name__ == '__main__':
     #               [ 0,  0,  0, 30,  0],
     #               [ 0,  0,  0,  0, 30]], dtype=np.float32)
 
-    print "X:"
-    print X
+    print("X:")
+    print(X)
 
     psi = [[0,1],[2]]
     # psi = [[0],[1],[2]]
@@ -79,12 +79,12 @@ if __name__ == '__main__':
     # psi = [[0,1,2],[3,4]]
     # psi = [[0,1,2,3,4]]
 
-    print "psi:", psi
+    print("psi:", psi)
 
     alpha = np.ones(X.shape)
-    print "alpha:"
-    print alpha
+    print("alpha:")
+    print(alpha)
 
     logp_H = compute_logp_H(X, psi, alpha)
 
-    print "Analytical estimate:", logp_H
+    print("Analytical estimate:", logp_H)
