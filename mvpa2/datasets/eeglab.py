@@ -42,7 +42,7 @@ def eeglab_dataset(samples):
     ds: mvpa2.base.dataset.Dataset
         Dataset with the contents of the input file
     '''
-    if not isinstance(samples, basestring):
+    if not isinstance(samples, str):
         raise ValueError("Samples should be a string")
 
     if _looks_like_filename(samples):
@@ -66,7 +66,7 @@ def eeglab_dataset(samples):
         else:
             # first value is the time point, the remainders the value 
             # for each channel
-            values = map(float, line.split())
+            values = list(map(float, line.split()))
             t = values[0]  # time 
             eeg = values[1:] # values for each electrode
 
@@ -84,7 +84,7 @@ def eeglab_dataset(samples):
 
     # get and verify number of elements in each dimension
     n_samples = len(samples)
-    n_timepoints_all = map(len, samples)
+    n_timepoints_all = list(map(len, samples))
 
     n_timepoints_unique = set(n_timepoints_all)
     if len(n_timepoints_unique) != 1:
@@ -102,7 +102,7 @@ def eeglab_dataset(samples):
     # make a list of all channels and timepoints
     channel_array = np.asarray(channel_labels)
     timepoint_array = np.asarray([samples[0][i][0]
-                                  for i in xrange(n_timepoints)])
+                                  for i in range(n_timepoints)])
 
     dts = timepoint_array[1:] - timepoint_array[:-1]
     if not np.all(dts == dts[0]):
@@ -178,7 +178,7 @@ def _eeglab_set_attributes(ds):
             flist = f
             f = lambda x:x in flist
 
-        return np.nonzero(map(f, xs))[0]
+        return np.nonzero(list(map(f, xs)))[0]
 
     # attributes for getting certain time points or channels ids
     # the argument f should be either be a function, or a list or tuple

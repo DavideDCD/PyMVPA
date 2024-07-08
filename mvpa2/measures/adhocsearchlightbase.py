@@ -82,7 +82,7 @@ def inds_to_coo(inds, shape=None):
     elif isinstance(inds, list):
         return _inds_list_to_coo(inds, shape)
     else:
-        raise NotImplementedError, "add conversion here"
+        raise NotImplementedError("add conversion here")
 
 def lastdim_columnsums_spmatrix(a, inds, out):
     # inds is a 2D array or list or already a sparse matrix, with each
@@ -184,8 +184,8 @@ class SimpleStatBaseSearchlight(BaseSearchlight):
         self._indexsum = indexsum
 
         if not self.nproc in (None, 1):
-            raise NotImplementedError, "For now only nproc=1 (or None for " \
-                  "autodetection) is supported by GNBSearchlight"
+            raise NotImplementedError("For now only nproc=1 (or None for " \
+                  "autodetection) is supported by GNBSearchlight")
 
         self.__pb = None            # statistics per each block/label
         self.__reuse_neighbors = reuse_neighbors

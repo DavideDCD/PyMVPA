@@ -230,9 +230,9 @@ class Partitioner(Node):
                 # accommodate the `count` number
                 step = float(n_cfgs) / count
                 assert (step >= 1.0)
-                indexes = [int(round(step * i)) for i in xrange(count)]
+                indexes = [int(round(step * i)) for i in range(count)]
             elif strategy == 'random':
-                indexes = np.random.permutation(range(n_cfgs))[:count]
+                indexes = np.random.permutation(list(range(n_cfgs)))[:count]
                 # doesn't matter much but lets keep them in the original
                 # order at least
                 indexes.sort()
@@ -587,12 +587,12 @@ class FactorialPartitioner(Partitioner):
         selected_indexes = None
         if self.count is not None:
             if self.selection_strategy in ['equidistant', 'random']:
-                all_partitionings = map(list, all_partitionings)
+                all_partitionings = list(map(list, all_partitionings))
 
             if self.selection_strategy == 'equidistant':
                 # we need to figure out total number and/or all partitionings
                 # ahead of time so we could randomly or equidistantly select
-                n_cfg = np.prod(map(len, all_partitionings))
+                n_cfg = np.prod(list(map(len, all_partitionings)))
                 selected_indexes = set(self.get_selected_indexes(n_cfg))
             elif self.selection_strategy == 'random':
                 # if no count is given, just return all as "random" ones ;-)

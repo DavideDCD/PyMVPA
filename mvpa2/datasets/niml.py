@@ -119,7 +119,7 @@ def from_niml(dset, fa_labels=None, sa_labels=None, a_labels=None):
 
     infix2length = {'sa': nsamples, 'fa': nfeatures}
 
-    for k, v in dset.iteritems():
+    for k, v in dset.items():
         if k in ignore_labels:
             continue
 
@@ -136,7 +136,7 @@ def from_niml(dset, fa_labels=None, sa_labels=None, a_labels=None):
                         if isinstance(v, np.ndarray) and np.dtype == np.str_:
                             v = str(v)
 
-                        while isinstance(v, basestring):
+                        while isinstance(v, str):
                             # strings are seperated by ';'
                             # XXX what if this is part of the value
                             # intended by the user?
@@ -232,7 +232,7 @@ def to_niml(ds):
     for i, attr_label in enumerate(attr_labels):
         attr = getattr(ds, attr_label)
         special_labels = attr_special_labels[i]
-        for k in attr.keys():
+        for k in list(attr.keys()):
             v = attr[k]
             if hasattr(v, 'value'):
                 v = v.value
@@ -354,11 +354,11 @@ def _find_sample_labels(dset, sample_labels):
     that matches '''
     use_label = None
 
-    dset_keys = dset.sa.keys()
+    dset_keys = list(dset.sa.keys())
     for label in sample_labels:
         if label in dset_keys:
             sample_label = dset.sa[label].value
-            if isinstance(sample_label, basestring):
+            if isinstance(sample_label, str):
                 # split using
                 sample_label = sample_label.split(';')
 
@@ -389,7 +389,7 @@ def _find_node_indices(dset, node_indices_labels):
 
     use_label = None
 
-    dset_keys = dset.fa.keys()
+    dset_keys = list(dset.fa.keys())
     for label in node_indices_labels:
         if label in dset_keys:
             if use_label is None:
@@ -445,7 +445,7 @@ def read(fn):
     if externals.exists('h5py'):
         readers_converters[('.h5py', '.hdf')] = (h5load, None)
 
-    keys = [exts for exts in readers_converters.iterkeys()
+    keys = [exts for exts in readers_converters.keys()
             if any(fn.endswith(ext) for ext in exts)]
 
     n_keys = len(keys)
@@ -463,7 +463,7 @@ def read(fn):
     else:
         # unclear extension, try all readers and throw less informative
         # error message
-        for reader, converter in readers_converters.itervalues():
+        for reader, converter in readers_converters.values():
             try:
                 r = reader(fn)
                 if converter:
@@ -490,7 +490,7 @@ def from_any(x):
     ds: mvpa2.base.Dataset
         Dataset instance
     '''
-    if isinstance(x, basestring):
+    if isinstance(x, str):
         return read(x)
     elif isinstance(x, dict):
         return from_niml(x)

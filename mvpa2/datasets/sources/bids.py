@@ -32,4 +32,4 @@ def load_events(fname, as_recarr=False):
     if as_recarr:
         return evrec
     columns = evrec.dtype.names
-    return [dict(zip(columns, ev)) for ev in evrec]
+    return [dict(list(zip(columns, ev))) for ev in evrec]

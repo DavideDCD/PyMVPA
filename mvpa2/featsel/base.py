@@ -449,8 +449,8 @@ class IterativeFeatureSelection(FeatureSelection):
         dsgen = self._splitter.generate(ds)
         # and derived the dataset part that is used for computing the selection
         # criterion
-        trainds = dsgen.next()
-        testds = dsgen.next()
+        trainds = next(dsgen)
+        testds = next(dsgen)
         return trainds, testds
 
     # access properties
@@ -639,7 +639,7 @@ class SplitSamplesProbabilityMapper(SliceMapper):
         splits = split_by_sample_attribute(ds_copy,
                                          self._split_by_labels)
 
-        scores_ds = map(self._sensitivity_analyzer, splits)
+        scores_ds = list(map(self._sensitivity_analyzer, splits))
 
         if self._probability_label is None:
             scores = [ds.samples for ds in scores_ds]
@@ -654,7 +654,7 @@ class SplitSamplesProbabilityMapper(SliceMapper):
             f = self._probability_combiner
 
             n = stacked.shape[-1] # number of features
-            common_all = np.asarray([f(stacked[:, i]) for i in xrange(n)])
+            common_all = np.asarray([f(stacked[:, i]) for i in range(n)])
 
             # combine the scores
             common_feature_ids = selector(common_all)

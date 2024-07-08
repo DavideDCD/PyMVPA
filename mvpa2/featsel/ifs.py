@@ -83,7 +83,7 @@ class IFS(IterativeFeatureSelection):
         # Computed error for each tested features set.
         errors = []
         # feature candidate are all features in the pattern object
-        candidates = range(ds.nfeatures)
+        candidates = list(range(ds.nfeatures))
         # initially empty list of selected features
         selected = []
         # results in here please
@@ -113,7 +113,7 @@ class IFS(IterativeFeatureSelection):
                 dsgen = self._splitter.generate(candidate_ds)
                 # and derived the dataset part that is used for computing the selection
                 # criterion
-                trainds = dsgen.next()
+                trainds = next(dsgen)
                 # compute data measure on the training part of this feature set
                 measures.append(fmeasure(trainds))
 

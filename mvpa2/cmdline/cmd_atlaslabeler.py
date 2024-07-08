@@ -155,7 +155,7 @@ def get_summary(args, summary, output):
     # Sort either by the name (then ascending) or by the number of
     # elements (then descending)
     sort_keys = [(k, len(v['values']), v['maxcoord'][1])
-                 for k,v in summary.iteritems()]
+                 for k,v in summary.items()]
     sort_index, sort_reverse = {
         'name' : (0, False),
         'count': (1, True),
@@ -164,10 +164,10 @@ def get_summary(args, summary, output):
                    reverse=sort_reverse)
     # and here are the keys
     keys = [x[0] for x in sort_keys]
-    maxkeylength = max (map(len, keys))
+    maxkeylength = max (list(map(len, keys)))
 
     # may be I should have simply made a counter ;-)
-    total = sum(map(lambda x:len(x['values']), summary.values()))
+    total = sum([len(x['values']) for x in list(summary.values())])
     count_reported = 0
     for index in keys:
         if index.rstrip(' /') == 'None' and args.suppressNone:
@@ -239,9 +239,9 @@ def setup_parser(parser):
 
     parser.add_argument("-A", "--atlas",
                       action="store", dest="atlasName",
-                      default="talairach", choices=KNOWN_ATLASES.keys(),
+                      default="talairach", choices=list(KNOWN_ATLASES.keys()),
                       help="Atlas to use. Choices: %s"
-                           % ', '.join(KNOWN_ATLASES.keys()))
+                           % ', '.join(list(KNOWN_ATLASES.keys())))
 
     parser.add_argument("-f", "--atlas-image-file",
                       action="store", dest="atlasImageFile",
@@ -460,7 +460,7 @@ def run(args):
             niftiInput = nb.load(infile)
             if __debug__:
                 debug('ATL', "Yes it is")
-        except Exception, e:
+        except Exception as e:
             if __debug__:
                 debug('ATL', "No it is not due to %s. Trying to parse the file" % e)
 
@@ -593,13 +593,13 @@ def run(args):
                 voxelSizeOriginal = np.array([2.0, 2.0, 2.0])
                 warning("Assuming elderly sizes for MNI volumes with"
                            " origin %s and sizes %s" %\
-                           ( `voxelOriginOriginal`, `voxelSizeOriginal`))
+                           ( repr(voxelOriginOriginal), repr(voxelSizeOriginal)))
 
 
         if not (voxelOriginOriginal is None and voxelSizeOriginal is None):
             verbose(2, "Assigning origin adjusting transformation with"+\
                     " origin=%s and voxelSize=%s" %\
-                    ( `voxelOriginOriginal`, `voxelSizeOriginal`))
+                    ( repr(voxelOriginOriginal), repr(voxelSizeOriginal)))
 
             coordT = SpaceTransformation(origin=voxelOriginOriginal,
                                          voxelSize=voxelSizeOriginal,
@@ -634,10 +634,10 @@ def run(args):
         if args.levels is None:
             args.levels = str(min(4, atlas.nlevels-1))
     if args.levels is None:
-        args.levels = range(atlas.nlevels)
-    elif isinstance(args.levels, basestring):
+        args.levels = list(range(atlas.nlevels))
+    elif isinstance(args.levels, str):
         if args.levels == 'list':
-            print "Known levels and their indicies:\n" + atlas.levels_listing()
+            print("Known levels and their indicies:\n" + atlas.levels_listing())
             sys.exit(0)
         slevels = args.levels.split(',')
         args.levels = []
@@ -669,8 +669,8 @@ def run(args):
     # validity check
     if args.dumpmapFile:
         if niftiInput is None:
-            raise RuntimeError, "You asked to dump indexes into the volume, " \
-                  "but input wasn't a volume"
+            raise RuntimeError("You asked to dump indexes into the volume, " \
+                  "but input wasn't a volume")
             sys.exit(1)
         ni_dump = nb.load(infile)
         ni_dump_data = np.zeros(ni_dump.header.get_data_shape()[:3] + (len(args.levels),))
@@ -678,11 +678,9 @@ def run(args):
     # Also check if we have provided voxels but not querying by voxels
     if args.input_voxels:
         if coordT is not None:
-            raise NotImplementedError, \
-                  "Cannot perform voxels querying having coordT defined"
+            raise NotImplementedError("Cannot perform voxels querying having coordT defined")
         if not query_voxel:
-            raise NotImplementedError, \
-                  "query_voxel was reset to False, can't do queries by voxel"
+            raise NotImplementedError("query_voxel was reset to False, can't do queries by voxel")
 
     # Read coordinates
     numVoxels = 0
@@ -760,7 +758,7 @@ def run(args):
                 out += " %(voxel_queried)s ->"
 
             if args.levels is None:
-                args.levels = range(len(voxel['labels']))
+                args.levels = list(range(len(voxel['labels'])))
 
             labels = [present_labels(args, voxel['labels'][i]) for i in args.levels]
             out += ','.join(labels)
@@ -779,7 +777,7 @@ def run(args):
                 ni_dump_data[coord_orig[0], coord_orig[1], coord_orig[2]] = \
                   [voxel['labels'][i]['label'].index
                    for i,ind in enumerate(args.levels)]
-            except Exception, e:
+            except Exception as e:
                 import pydb
                 pydb.debugger()
 

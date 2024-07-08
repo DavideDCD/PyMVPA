@@ -244,7 +244,7 @@ def _attributes_cosmo2dict(cosmo):
     pymvpa_attributes = dict()
 
     # go over 'sa', 'fa' and 'a'
-    for fieldname, do_transpose in _attr_fieldname2do_transpose.iteritems():
+    for fieldname, do_transpose in _attr_fieldname2do_transpose.items():
         attrs = dict()
 
         if fieldname in cosmo:
@@ -317,7 +317,7 @@ def _attributes_dict2cosmo(ds):
     cosmo = dict()
 
     # go over 'sa', 'fa' and 'a'
-    for fieldname, do_transpose in _attr_fieldname2do_transpose.iteritems():
+    for fieldname, do_transpose in _attr_fieldname2do_transpose.items():
         attr_collection = getattr(ds, fieldname)
 
         if attr_collection:
@@ -431,14 +431,14 @@ def _mat_make_saveable(x, fixer=_mat_replace_functions_by_string):
     if type(x) is dict:
         # use recursion
         return dict((k, _mat_make_saveable(v, fixer=fixer))
-                    for k, v in x.iteritems())
+                    for k, v in x.items())
 
     elif isinstance(x, np.ndarray) and x.dtype.names is None:
         # standard array or object array
         n = x.size
 
         # get tuple indices for N-dimensional array
-        idxs = zip(*np.unravel_index(np.arange(n), x.shape))
+        idxs = list(zip(*np.unravel_index(np.arange(n), x.shape)))
 
         # only object arrays need fixing. Other types, e.g. float arrays
         # can be ignored
@@ -461,7 +461,7 @@ def _mat_make_saveable(x, fixer=_mat_replace_functions_by_string):
 
         return arr
 
-    elif isinstance(x, basestring):
+    elif isinstance(x, str):
         # anything else, e.g. __header__
         return x
 
@@ -527,7 +527,7 @@ def cosmo_dataset(cosmo):
         based on the input
     '''
 
-    if isinstance(cosmo, basestring):
+    if isinstance(cosmo, str):
         # load file
         cosmo = _loadmat_internal(cosmo)
 
@@ -606,13 +606,13 @@ def from_any(x):
         CosmoQueryEngine is returned.
     '''
 
-    if isinstance(x, basestring):
+    if isinstance(x, str):
         x = _loadmat_internal(x)
 
     if isinstance(x, dict):
-        x_keys = x.keys()
+        x_keys = list(x.keys())
         # remove private headers so that CosmoQueryEngine.from_mat won't choke
-        x = dict((k, v) for k, v in x.iteritems() if not _is_private_key(k))
+        x = dict((k, v) for k, v in x.items() if not _is_private_key(k))
 
         for depth in (0, 1):
             if 'samples' in x:
@@ -693,7 +693,7 @@ class CosmoQueryEngine(QueryEngineInterface):
         self._mapping = mapping
 
         # store center ids
-        self._ids = ids = np.asarray(mapping.keys())
+        self._ids = ids = np.asarray(list(mapping.keys()))
 
         # get feature and dataset attributes
         attributes = _attributes_cosmo2dict(dict(a=a, fa=fa))
@@ -726,7 +726,7 @@ class CosmoQueryEngine(QueryEngineInterface):
         if not isinstance(mapping, dict):
             raise TypeError('Mapping must be dict, found %s' % type(mapping))
 
-        for k, v in mapping.iteritems():
+        for k, v in mapping.items():
             if not np.isscalar(k):
                 raise ValueError('Key %s not a scalar' % k)
             if not isinstance(k, int):
@@ -808,8 +808,8 @@ class CosmoQueryEngine(QueryEngineInterface):
         return ('%s(%d center ids (%d .. %d), <fa: %s>, <a: %s>' %
                 (self.__class__.__name__, len(ids),
                  np.min(ids), np.max(ids),
-                 ', '.join(template.fa.keys()),
-                 ', '.join(template.a.keys())))
+                 ', '.join(list(template.fa.keys())),
+                 ', '.join(list(template.a.keys()))))
 
     def __reduce__(self):
         '''

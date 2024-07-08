@@ -44,7 +44,7 @@ def _taskrun(task, run):
 
 
 def _id2int(id_, strip=None):
-    if strip is None and isinstance(id_, basestring):
+    if strip is None and isinstance(id_, str):
         for s in ('sub', 'task', 'model', 'run', 'cond'):
             if id_.startswith(s):
                 id_ = id_[len(s):]
@@ -311,7 +311,7 @@ class OpenFMRIDataset(object):
         data = [None] * nruns
 
         # over all possible run ids
-        for run in xrange(nruns):
+        for run in range(nruns):
             # for all actual subjects
             for subj in sorted(tbri.keys()):
                 if subj in exclude_subjs:
@@ -410,7 +410,7 @@ class OpenFMRIDataset(object):
         if add_sa is None:
             return ds
 
-        if isinstance(add_sa, basestring):
+        if isinstance(add_sa, str):
             add_sa = (add_sa,)
         for sa in add_sa:
             # TODO: come up with a fancy way of detecting what kind of thing
@@ -421,7 +421,7 @@ class OpenFMRIDataset(object):
             if len(attrs.shape) == 1:
                 ds.sa[sa] = attrs
             else:
-                for col in xrange(attrs.shape[1]):
+                for col in range(attrs.shape[1]):
                     ds.sa['%s_%i' % (sa, col)] = attrs[:, col]
         return ds
 
@@ -541,8 +541,8 @@ class OpenFMRIDataset(object):
                         % (cond['name'], run))
                 continue
             for i, ev in enumerate(evdata):
-                evdict = dict(zip(ev_fields,
-                                  [ev[field] for field in ev_fields]))
+                evdict = dict(list(zip(ev_fields,
+                                  [ev[field] for field in ev_fields])))
                 evdict['task'] = task_id
                 evdict['condition'] = cond['name']
                 evdict['run'] = run
@@ -611,7 +611,7 @@ class OpenFMRIDataset(object):
         conds = self.get_model_conditions(model_id)
         # what tasks do we need to consider for this model
         tasks = np.unique([c['task'] for c in conds])
-        if isinstance(subj_id, (int, basestring)):
+        if isinstance(subj_id, (int, str)):
             subj_id = [subj_id]
         dss = []
         for sub in subj_id:
@@ -650,7 +650,7 @@ class OpenFMRIDataset(object):
                     if preproc_ds is not None:
                         d = preproc_ds(d)
                     d = modelfx(
-                        d, events, **dict([(k, v) for k, v in kwargs.iteritems()
+                        d, events, **dict([(k, v) for k, v in kwargs.items()
                                           if not k in ('preproc_img', 'preproc_ds',
                                                        'modelfx', 'stack', 'flavor',
                                                        'mask', 'add_fa', 'add_sa')]))

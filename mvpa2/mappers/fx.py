@@ -15,7 +15,6 @@ import inspect
 
 from mvpa2.base import warning
 from mvpa2.base.node import Node
-from mvpa2.base.types import asobjarray
 from mvpa2.base.param import Parameter
 from mvpa2.base.constraints import *
 from mvpa2.datasets import Dataset
@@ -25,6 +24,7 @@ from mvpa2.misc.support import array_whereequal
 from mvpa2.base.dochelpers import borrowdoc
 
 from mvpa2.misc.transformers import sum_of_abs, max_of_abs, subtract_mean
+from functools import reduce
 
 if __debug__:
     from mvpa2.base import debug
@@ -122,7 +122,7 @@ class FxMapper(Mapper):
             elif __debug__:
                 debug('FX', "Will apply %s via apply_along_axis",
                           (self.__fx))
-        except Exception, e:
+        except Exception as e:
             if __debug__:
                 debug('FX',
                       "Failed to deduce either %s has 'axis' argument: %s",
@@ -217,19 +217,19 @@ class FxMapper(Mapper):
         else:
             raise RuntimeError("This should not have happened!")
 
-        attrs = dict(zip(col.keys(), [[] for i in col]))
+        attrs = dict(list(zip(list(col.keys()), [[] for i in col])))
 
         # create a dictionary for all unique elements in all attribute this
         # mapper should operate on
-        self.__attrcombs = dict(zip(self.__uattrs,
-                                [col[attr].unique for attr in self.__uattrs]))
+        self.__attrcombs = dict(list(zip(self.__uattrs,
+                                [col[attr].unique for attr in self.__uattrs])))
         # let it generate all combinations of unique elements in any attr
         order = self.order
         order_keys = []
         for comb in _orthogonal_permutations(self.__attrcombs):
             selector = reduce(np.multiply,
                                 [array_whereequal(col[attr].value, value)
-                                 for attr, value in comb.iteritems()])
+                                 for attr, value in comb.items()])
 
             # process the samples
             if axis == 0:
@@ -269,7 +269,7 @@ class FxMapper(Mapper):
             mdata = [mdata[i] for i in order_idxs]
             # and attributes
             attrs = dict((k, [v[i] for i in order_idxs])
-                         for k,v in attrs.iteritems())
+                         for k,v in attrs.items())
 
         if axis == 0:
             mdata = np.vstack(mdata)
@@ -288,13 +288,13 @@ class FxMapper(Mapper):
 
         # and now all attributes
         if self.__axis == 'samples':
-            attrs = dict(zip(ds.sa.keys(),
+            attrs = dict(list(zip(list(ds.sa.keys()),
                               [self.__attrfx(ds.sa[attr].value)
-                                    for attr in ds.sa]))
+                                    for attr in ds.sa])))
         if self.__axis == 'features':
-            attrs = dict(zip(ds.fa.keys(),
+            attrs = dict(list(zip(list(ds.fa.keys()),
                               [self.__attrfx(ds.fa[attr].value)
-                                    for attr in ds.fa]))
+                                    for attr in ds.fa])))
         return mdata, attrs
 
     axis = property(fget=lambda self:self.__axis)
@@ -509,16 +509,10 @@ def _uniquemerge2literal(attrs):
     items is. None is returned in case of an empty sequence.
     """
     try:
-        if isinstance(attrs[0], basestring):
+        if isinstance(attrs[0], str):
             # do not try to disassemble sequences of strings
             raise TypeError
-        uvalues = set(map(tuple, attrs))
-        # if we were provided array of object type, most likely because
-        # we had tuples or other objects, we must produce also object array
-        if isinstance(attrs, np.ndarray) and attrs.dtype == 'O':
-            unq = asobjarray(list(uvalues))
-        else:
-            unq = list(map(np.array, uvalues))
+        unq = [np.array(u) for u in set([tuple(p) for p in attrs])]
     except TypeError:
         # either no 2d-iterable...
         try:
@@ -558,7 +552,7 @@ def argsort(seq, reverse=False):
     # Thanks!
 
     # cmp was not passed through since seems to be absent in python3
-    return sorted(range(len(seq)), key=seq.__getitem__, reverse=reverse)
+    return sorted(list(range(len(seq))), key=seq.__getitem__, reverse=reverse)
 
 def _orthogonal_permutations(a_dict):
     """
@@ -583,7 +577,7 @@ def _orthogonal_permutations(a_dict):
     # Taken from MDP (LGPL)
     pool = dict(a_dict)
     args = []
-    for func, all_args in pool.items():
+    for func, all_args in list(pool.items()):
         # check the size of the list in the second item of the tuple
         args_with_fun = [(func, arg) for arg in all_args]
         args.append(args_with_fun)

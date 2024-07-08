@@ -32,7 +32,7 @@ if externals.exists('h5py'):
     from mvpa2.base.hdf5 import h5save, h5load
 
 if externals.exists('scipy'):
-    from scipy.sparse import coo_matrix, csc_matrix, diags
+    from scipy.sparse import coo_matrix, csc_matrix
 
 from mvpa2.support.due import due, Doi
 
@@ -332,19 +332,6 @@ class SearchlightHyperalignment(ClassWithCollections):
         'tmpsl',
         constraints='str',
         doc="""Prefix for temporary files. See Searchlight documentation.""")
-
-    rescale_proj = Parameter(
-        False,
-        constraints=EnsureBool(),
-        doc="""Searchlight projection mappers are composites of multiple mappers.
-            Feature values scale in proportion to the number of searchlights,
-            and different features will scale differently. Setting rescale_proj 
-            to true corrects for this, but takes a little time, and is often 
-            superfluous (e.g. if followed by a voxel-wise t-test, or if data
-            is transformed back into a reference subject's space using a 
-            reverse mapping). In an attempt to reduce the compute time we assume
-            all participants are in the same space, and as a result have the same
-            scaling factors.""")
 
     def __init__(self, **kwargs):
         _shpaldebug("Initializing.")
@@ -650,42 +637,6 @@ class SearchlightHyperalignment(ClassWithCollections):
         results_ds = self.__handle_all_results(p_results)
         # Dummy iterator for, you know, iteration
         list(results_ds)
-
-        if params.rescale_proj:
-            # rescale proj to transform searchlight sum to yeild searchlight average
-            if __debug__:
-                bar = ProgressBar()
-            n = self.projections[0].shape[0]
-            scaler = np.zeros(n)
-            for idx in range(0, n):
-                if __debug__:
-                    msg = 'Computing node (%i/%i) rescaling' % (idx + 1, n)
-                    debug('SLC', bar(float(idx + 1) / n, msg), cr=True)
-
-                neighborhood = queryengines[0].query_byid(idx)
-                scaler[neighborhood] += 1
-            scaler[np.where(scaler == 0)] = 1 # to avoid division by zero later
-
-            for i,proj in enumerate(self.projections):
-                # scaler is a vector that for each feature counts the number of
-                # searchlights that circumscribe it. This corresponds to the number of
-                # projection matrices that were summed in _proc_block(). Rescaling
-                # by this value converts the transform from the sum of projected data 
-                # into the average data produced by each searchlight's projection.
-                
-                '''
-                # this is necessary if query engines don't match across instances
-                # but adds considerably to compute time. There may be a more efficient
-                # way to compute this though someone more clever than me might come up 
-                # with
-                n = proj.shape[0]
-                scaler = np.zeros(n)
-                for idx in range(0, n):
-                    neighborhood = queryengines[i].query_byid(idx)
-                    scaler[neighborhood] += 1
-                scaler[np.where(scaler == 0)] = 1 # to avoid division by zero later
-                '''
-                self.projections[i] = proj*diags(1.0/scaler)
 
         _shpaldebug('Wrapping projection matrices into StaticProjectionMappers')
         self.projections = [
